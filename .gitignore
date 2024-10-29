@@ -26,7 +26,10 @@
 *.a
 *.lib
 
-# Executables
+# Executables extensions
 *.exe
 *.out
 *.app
+
+# Specific files
+main
