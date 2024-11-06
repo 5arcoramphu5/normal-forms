@@ -1,17 +1,23 @@
 #include "NormalFormFinder.h"
 #include "PseudoNormalForm.h"
 
-PseudoNormalForm NormalFormFinder::CalculatePseudoNormalForm()
+PseudoNormalForm NormalFormFinder::calculatePseudoNormalForm(const DMatrix &lambda, const DMap &f)
 {
+    // TODO: move system to set point to X=0
+
+    // TODO: diagonalize matrix
+
+    // TODO: check if saddle-focus or saddle-center in X=0
+
     PseudoNormalForm result;
     for(int i = 0; i < degree; ++i)
     {
-        NextIteration(result);
+        nextIteration(result);
     }
     return result;
 }
 
-void NormalFormFinder::NextIteration(PseudoNormalForm &result)
+void NormalFormFinder::nextIteration(PseudoNormalForm &result)
 {
-
+    
 }

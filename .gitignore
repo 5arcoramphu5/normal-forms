@@ -31,5 +31,8 @@
 *.out
 *.app
 
+# VS Code configuration files
+.vscode/
+
 # Specific files
 main
