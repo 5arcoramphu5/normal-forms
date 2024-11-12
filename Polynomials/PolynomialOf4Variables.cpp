@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 using namespace std;
+using namespace capd;
 
 PolynomialOf4Variables::PolynomialOf4Variables(int _degree, double fillWith) : PolynomialOf4Variables(_degree, _degree, fillWith) {}
 
@@ -69,51 +70,90 @@ void PolynomialOf4Variables::extend(double fillWith)
 
 string PolynomialOf4Variables::toString(string var1, string var2, string var3, string var4) const
 {
-    stringstream ss;
-    for(int i = 0; i <= degree; ++i)
-        for(int j = 0; j <= degree-i; ++j)
-            for(int k = 0; k <= degree-i-j; ++k)
-                for(int l = 0; l <= degree-i-j-k; ++l)
-                {
-                    if(i == 0 && j == 0 && k == 0 && l == 0 && coefficients[i][j][k][l] != 0)
-                    {
-                        ss << coefficients[i][j][k][l] << " + ";
-                    }
-                    else if(coefficients[i][j][k][l] != 0)
-                    {
-                        if(coefficients[i][j][k][l] != 1)
-                        {
-                            if(coefficients[i][j][k][l] == -1)
-                                ss << "-";
-                            else
-                                ss << coefficients[i][j][k][l];
-                        }
-                        if(i > 0) ss << var1<<(i == 1 ? "" : "^"+to_string(i));
-                        if(j > 0) ss << var2<<(j == 1 ? "" : "^"+to_string(j));
-                        if(k > 0) ss << var3<<(k == 1 ? "" : "^"+to_string(k));
-                        if(l > 0) ss << var4<<(l == 1 ? "" : "^"+to_string(l));
+    const Multiindex zero({0, 0, 0, 0});
 
-                        ss << " + ";
+    stringstream ss;
+    for(int deg = 0; deg <= degree; ++deg)
+    {
+        Multiindex index({deg, 0, 0, 0});
+        do
+        {
+            double coeff = get_coeff(index);
+            if(coeff != 0)
+            {
+                if(index != zero)
+                {
+                    if(coeff != 1)
+                    {
+                        if(coeff == -1) ss << "-";
+                        else ss << coeff;
                     }
                 }
+                else ss << coeff;
+
+                if(index[0] > 0) ss << var1<<(index[0] == 1 ? "" : "^"+to_string(index[0]));
+                if(index[1] > 0) ss << var2<<(index[1] == 1 ? "" : "^"+to_string(index[1]));
+                if(index[2] > 0) ss << var3<<(index[2] == 1 ? "" : "^"+to_string(index[2]));
+                if(index[3] > 0) ss << var4<<(index[3] == 1 ? "" : "^"+to_string(index[3]));
+
+                ss << " + ";
+            }
+        }while(index.hasNext());
+    }
+
     string str = ss.str();
+    if(str.length() == 0)
+        str = "0";
+
     return str.substr(0, str.length()-3);
 }
 
-void PolynomialOf4Variables::set_coeff(int i, int j, int k, int l, double value)
+void PolynomialOf4Variables::set_coeff(const Multiindex &index, double value)
 {
-    validate_indices(i, j, k, l);
-    coefficients[i][j][k][l] = value;
+    validate_indices(index);
+    coefficients[index[0]][index[1]][index[2]][index[3]] = value;
 }
 
-double PolynomialOf4Variables::get_coeff(int i, int j, int k, int l) const
+double PolynomialOf4Variables::get_coeff(const Multiindex &index) const
 {
-    validate_indices(i, j, k, l);
-    return coefficients[i][j][k][l];
+    validate_indices(index);
+    return coefficients[index[0]][index[1]][index[2]][index[3]];
 }
 
-void PolynomialOf4Variables::validate_indices(int i, int j, int k, int l) const
+void PolynomialOf4Variables::validate_indices(const Multiindex &index) const
 {
-    if(i+j+k+l > degree)
+    if(index.dimension() != 4)
+        throw runtime_error("Indices invalid for polynomial of 4 variables");
+
+    if(index[0]+index[1]+index[2]+index[3] > degree)
         throw runtime_error("Indices invalid for polynomial of degree "+to_string(degree)+".");
+}
+
+PolynomialOf4Variables4::PolynomialOf4Variables4(int _degree, double fillWith)
+{
+    for(int i = 0; i < 4; ++i)
+        subfunctions[i] = PolynomialOf4Variables(_degree, fillWith);
+}
+
+PolynomialOf4Variables4::PolynomialOf4Variables4(int _degree, int _futureDegree, double fillWith)
+{
+    for(int i = 0; i < 4; ++i)
+        subfunctions[i] = PolynomialOf4Variables(_degree, _futureDegree, fillWith);
+}
+
+PolynomialOf4Variables &PolynomialOf4Variables4::operator()(int index)
+{
+    if(index >= 4)
+        throw new runtime_error("Index " + to_string(index) + " invalid for 4 dimensional function.");
+    return subfunctions[index];
+}
+
+std::string PolynomialOf4Variables4::toString(std::string var1, std::string var2, std::string var3, std::string var4) const
+{
+    string s = "{\n";
+    for(int i = 0; i < 4; ++i)
+        s += subfunctions[i].toString(var1, var2, var3, var4) + ",\n";
+
+    s += "}";
+    return s;
 }

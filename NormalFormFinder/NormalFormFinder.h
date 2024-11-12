@@ -2,7 +2,6 @@
 #define _NORMAL_FORM_FINDER_H_
 
 #include "capd/capdlib.h"
-using namespace capd;
 
 class PseudoNormalForm;
 
@@ -16,7 +15,7 @@ class NormalFormFinder
     public:
         NormalFormFinder(int _degree) : degree(_degree) {}
 
-        PseudoNormalForm calculatePseudoNormalForm(const DMatrix &lambda, const DMap &f);
+        PseudoNormalForm calculatePseudoNormalForm(const capd::DMap &f, const capd::DVector &point);
 };
 
 #endif
