@@ -4,7 +4,6 @@
 #include "HelperFunctions.h"
 
 #include "capd/capdlib.h"
-#include "capd/capdAlglib.h"
 #include "capd/matrixAlgorithms/capd2alglib.h"
 
 using namespace capd;

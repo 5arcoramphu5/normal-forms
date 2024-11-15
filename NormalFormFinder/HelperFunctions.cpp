@@ -29,7 +29,7 @@ void getLinearPartWithReminder(const DJet &taylor, DMatrix *linearPart, Polynomi
             do
             {
                 for(int j = 0; j < 4; ++j)
-                    (*reminder)(j).set_coeff(index, taylor(index)[j]);
+                    (*reminder)(j).setCoeff(index, taylor(index)[j]);
             }while(index.hasNext());
         }
     }
@@ -57,4 +57,37 @@ CVector getEigenvalues(const DMatrix &matrix)
     }
 
     return eigenValues;
+}
+
+PolynomialOf4Variables4 proj_P(const PolynomialOf4Variables4 &poly)
+{
+    int deg = poly.getDegree();
+    PolynomialOf4Variables4 result(deg);
+
+    for(int i = 0; i < deg; ++i)
+        for(int j = 0; 2*i+2*j < deg ; ++j)
+        {   
+            if(j > 0)
+            {
+                result(0).setCoeff(i+1, i, j, j, poly(0).getCoeff(i+1, i, j, j)); // P_1
+                result(1).setCoeff(i, i+1, j, j, poly(1).getCoeff(i, i+1, j, j)); // P_2
+            }
+
+            if(i > 0)
+            {
+                result(2).setCoeff(i, i, j+1, j, poly(2).getCoeff(i, i, j+1, j)); // P_3
+                result(3).setCoeff(i, i, j, j+1, poly(3).getCoeff(i, i, j, j+1)); // P_4
+            }
+        }
+
+    return result;
+}
+
+PolynomialOf4Variables4 proj_R(const PolynomialOf4Variables4 &poly)
+{
+    PolynomialOf4Variables4 result(poly.getDegree());
+    auto proj = proj_P(poly);
+    for(int i = 0; i < 4; ++i)
+        result(i) = poly(i) - proj(i);
+    return result;
 }

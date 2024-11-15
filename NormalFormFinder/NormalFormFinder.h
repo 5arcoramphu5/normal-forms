@@ -1,8 +1,6 @@
 #ifndef _NORMAL_FORM_FINDER_H_
 #define _NORMAL_FORM_FINDER_H_
 
-#include "capd/capdlib.h"
-
 class PseudoNormalForm;
 
 class NormalFormFinder

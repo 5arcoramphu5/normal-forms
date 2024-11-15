@@ -1,8 +1,10 @@
 #ifndef _TYPEDEFS_
 #define _TYPEDEFS_
 
-#include "capd/capdlib.h"
-#include "capd/capdAlglib.h"
+#include "capd/vectalg/lib.h"
+#include "capd/map/lib.h"
+#include "capd/fields/lib.h"
+
 #include "capd/map/Map.hpp"
 
 #define DIMENSION 4

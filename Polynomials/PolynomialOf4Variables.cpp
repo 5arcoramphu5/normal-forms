@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <sstream>
+#include "capd/capdlib.h"
+
 using namespace std;
 using namespace capd;
 
@@ -78,7 +80,7 @@ string PolynomialOf4Variables::toString(string var1, string var2, string var3, s
         Multiindex index({deg, 0, 0, 0});
         do
         {
-            double coeff = get_coeff(index);
+            double coeff = getCoeff(index);
             if(coeff != 0)
             {
                 if(index != zero)
@@ -108,16 +110,40 @@ string PolynomialOf4Variables::toString(string var1, string var2, string var3, s
     return str.substr(0, str.length()-3);
 }
 
-void PolynomialOf4Variables::set_coeff(const Multiindex &index, double value)
+void PolynomialOf4Variables::setCoeff(const Multiindex &index, double value)
 {
     validate_indices(index);
     coefficients[index[0]][index[1]][index[2]][index[3]] = value;
 }
 
-double PolynomialOf4Variables::get_coeff(const Multiindex &index) const
+double PolynomialOf4Variables::getCoeff(const Multiindex &index) const
 {
     validate_indices(index);
     return coefficients[index[0]][index[1]][index[2]][index[3]];
+}
+
+void PolynomialOf4Variables::setCoeff(int i, int j, int k, int l, double value)
+{
+    setCoeff(Multiindex({i, j, k, l}), value);
+}
+
+double PolynomialOf4Variables::getCoeff(int i, int j, int k, int l) const
+{
+    return getCoeff(Multiindex({i, j, k, l}));
+}
+
+PolynomialOf4Variables PolynomialOf4Variables::operator-(PolynomialOf4Variables const &obj) const
+{
+    PolynomialOf4Variables result(degree);
+    for(int deg = 0; deg <= degree; ++deg)
+    {
+        Multiindex index({deg, 0, 0, 0});
+        do
+        {
+            result.setCoeff(index, getCoeff(index) - obj.getCoeff(index));
+        }while(index.hasNext());
+    }
+    return result;
 }
 
 void PolynomialOf4Variables::validate_indices(const Multiindex &index) const
@@ -142,6 +168,13 @@ PolynomialOf4Variables4::PolynomialOf4Variables4(int _degree, int _futureDegree,
 }
 
 PolynomialOf4Variables &PolynomialOf4Variables4::operator()(int index)
+{
+    if(index >= 4)
+        throw new runtime_error("Index " + to_string(index) + " invalid for 4 dimensional function.");
+    return subfunctions[index];
+}
+
+const PolynomialOf4Variables &PolynomialOf4Variables4::operator()(int index) const
 {
     if(index >= 4)
         throw new runtime_error("Index " + to_string(index) + " invalid for 4 dimensional function.");
