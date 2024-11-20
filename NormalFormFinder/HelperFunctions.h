@@ -3,11 +3,10 @@
 
 #include "../typedefs.h"
 #include "../Polynomials/PolynomialOf4Variables.h"
-#include "capd/diffAlgebra/lib.h"
 
-void getLinearPartWithReminder(const capd::DJet &taylor, capd::DMatrix *linearPart, PolynomialOf4Variables4 *reminder);
+void getLinearPartWithReminder(const CJet &taylor, CMatrix *linearPart, PolynomialOf4Variables4 *reminder);
 
-capd::DJet getTaylorSeries(const capd::DMap &function, int degree);
+CJet getTaylorSeries(const CMap &function, int degree);
 
 CVector getEigenvalues(const capd::DMatrix &matrix);
 

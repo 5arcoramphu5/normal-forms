@@ -4,12 +4,12 @@
 using namespace capd;
 using namespace std;
 
-void getLinearPartWithReminder(const DJet &taylor, DMatrix *linearPart, PolynomialOf4Variables4 *reminder)
+void getLinearPartWithReminder(const CJet &taylor, CMatrix *linearPart, PolynomialOf4Variables4 *reminder)
 {    
     if(taylor.dimension() != 4)
         throw new runtime_error("Taylor series dimension is invalid.");
 
-    double linearArr[4][4];
+    Complex linearArr[4][4];
     Multiindex index({1, 0, 0, 0});
     int i = 0;
     do
@@ -19,7 +19,7 @@ void getLinearPartWithReminder(const DJet &taylor, DMatrix *linearPart, Polynomi
         i++;
     }while(index.hasNext());
 
-    *linearPart = DMatrix(linearArr);
+    *linearPart = CMatrix(linearArr);
 
     for(int deg = 0; deg <= taylor.degree(); ++deg)
     {
@@ -35,10 +35,10 @@ void getLinearPartWithReminder(const DJet &taylor, DMatrix *linearPart, Polynomi
     }
 }
 
-DJet getTaylorSeries(const DMap &function, int degree)
+CJet getTaylorSeries(const CMap &function, int degree)
 {
-    DJet taylor(function.imageDimension(), function.dimension(), degree);
-    function(DVector({0, 0}), taylor);
+    CJet taylor(function.imageDimension(), function.dimension(), degree);
+    function(CVector({0, 0, 0, 0}), taylor);
     return taylor;
 }
 

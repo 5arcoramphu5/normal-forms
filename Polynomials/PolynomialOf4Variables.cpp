@@ -7,9 +7,9 @@
 using namespace std;
 using namespace capd;
 
-PolynomialOf4Variables::PolynomialOf4Variables(int _degree, double fillWith) : PolynomialOf4Variables(_degree, _degree, fillWith) {}
+PolynomialOf4Variables::PolynomialOf4Variables(int _degree, Complex fillWith) : PolynomialOf4Variables(_degree, _degree, fillWith) {}
 
-PolynomialOf4Variables::PolynomialOf4Variables(int _degree, int _futureDegree, double fillWith) : degree(_degree), futureDegree(_futureDegree)
+PolynomialOf4Variables::PolynomialOf4Variables(int _degree, int _futureDegree, Complex fillWith) : degree(_degree), futureDegree(_futureDegree)
 {
     coefficients.reserve(futureDegree+1);
     for(int i = 0; i <= degree; ++i)
@@ -29,7 +29,7 @@ PolynomialOf4Variables::PolynomialOf4Variables(int _degree, int _futureDegree, d
     }
 }
 
-void PolynomialOf4Variables::extend(double fillWith)
+void PolynomialOf4Variables::extend(Complex fillWith)
 {
     int degreeLeft = futureDegree-degree;
     if(degreeLeft < 0) degreeLeft = 0;
@@ -80,14 +80,14 @@ string PolynomialOf4Variables::toString(string var1, string var2, string var3, s
         Multiindex index({deg, 0, 0, 0});
         do
         {
-            double coeff = getCoeff(index);
-            if(coeff != 0)
+            Complex coeff = getCoeff(index);
+            if(coeff != Complex(0, 0))
             {
                 if(index != zero)
                 {
-                    if(coeff != 1)
+                    if(coeff != Complex(1, 0))
                     {
-                        if(coeff == -1) ss << "-";
+                        if(coeff == Complex(-1, 0)) ss << "-";
                         else ss << coeff;
                     }
                 }
@@ -110,24 +110,24 @@ string PolynomialOf4Variables::toString(string var1, string var2, string var3, s
     return str.substr(0, str.length()-3);
 }
 
-void PolynomialOf4Variables::setCoeff(const Multiindex &index, double value)
+void PolynomialOf4Variables::setCoeff(const Multiindex &index, Complex value)
 {
     validate_indices(index);
     coefficients[index[0]][index[1]][index[2]][index[3]] = value;
 }
 
-double PolynomialOf4Variables::getCoeff(const Multiindex &index) const
+Complex PolynomialOf4Variables::getCoeff(const Multiindex &index) const
 {
     validate_indices(index);
     return coefficients[index[0]][index[1]][index[2]][index[3]];
 }
 
-void PolynomialOf4Variables::setCoeff(int i, int j, int k, int l, double value)
+void PolynomialOf4Variables::setCoeff(int i, int j, int k, int l, Complex value)
 {
     setCoeff(Multiindex({i, j, k, l}), value);
 }
 
-double PolynomialOf4Variables::getCoeff(int i, int j, int k, int l) const
+Complex PolynomialOf4Variables::getCoeff(int i, int j, int k, int l) const
 {
     return getCoeff(Multiindex({i, j, k, l}));
 }
@@ -155,13 +155,13 @@ void PolynomialOf4Variables::validate_indices(const Multiindex &index) const
         throw runtime_error("Indices invalid for polynomial of degree "+to_string(degree)+".");
 }
 
-PolynomialOf4Variables4::PolynomialOf4Variables4(int _degree, double fillWith)
+PolynomialOf4Variables4::PolynomialOf4Variables4(int _degree, Complex fillWith)
 {
     for(int i = 0; i < 4; ++i)
         subfunctions[i] = PolynomialOf4Variables(_degree, fillWith);
 }
 
-PolynomialOf4Variables4::PolynomialOf4Variables4(int _degree, int _futureDegree, double fillWith)
+PolynomialOf4Variables4::PolynomialOf4Variables4(int _degree, int _futureDegree, Complex fillWith)
 {
     for(int i = 0; i < 4; ++i)
         subfunctions[i] = PolynomialOf4Variables(_degree, _futureDegree, fillWith);

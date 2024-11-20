@@ -7,9 +7,9 @@
 
 #include "capd/map/Map.hpp"
 
-#define DIMENSION 4
-typedef capd::vectalg::Vector<capd::Complex, DIMENSION> CVector;
-typedef capd::vectalg::Matrix<capd::Complex, DIMENSION, DIMENSION> CMatrix;
-typedef capd::map::Map<CMatrix> CMap; // TODO: use it
+typedef capd::vectalg::Vector<capd::Complex, 0> CVector;
+typedef capd::vectalg::Matrix<capd::Complex, 0, 0> CMatrix;
+typedef capd::map::Map<CMatrix> CMap;
+typedef capd::diffAlgebra::Jet<CMatrix, 0> CJet;
 
 #endif

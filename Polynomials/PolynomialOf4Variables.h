@@ -3,9 +3,9 @@
 
 #include <vector>
 #include <string>
-#include "capd/vectalg/lib.h"
+#include "capd/capdAlglib.h"
 
-typedef std::vector<std::vector<double>> Vector2D;
+typedef std::vector<std::vector<capd::Complex>> Vector2D;
 typedef std::vector<Vector2D> Vector3D;
 typedef std::vector<Vector3D> Vector4D;
 
@@ -20,24 +20,24 @@ class PolynomialOf4Variables
         void validate_indices(const capd::Multiindex &index) const;
 
     public:
-        PolynomialOf4Variables(int _degree = 0, double fillWith = 0);
+        PolynomialOf4Variables(int _degree = 0, capd::Complex fillWith = 0);
 
-        PolynomialOf4Variables(int _degree, int _futureDegree, double fillWith = 0);
+        PolynomialOf4Variables(int _degree, int _futureDegree, capd::Complex fillWith = 0);
 
         std::string toString(std::string var1, std::string var2, std::string var3,std::string var4) const;
 
         int getDegree() const { return degree; };
 
         // make degree greater by 1
-        void extend(double fillWith = 0);
+        void extend(capd::Complex fillWith = 0);
 
-        void setCoeff(const capd::Multiindex &index, double value);
+        void setCoeff(const capd::Multiindex &index, capd::Complex value);
 
-        double getCoeff(const capd::Multiindex &index) const;
+        capd::Complex getCoeff(const capd::Multiindex &index) const;
 
-        void setCoeff(int i, int j, int k, int l, double value);
+        void setCoeff(int i, int j, int k, int l, capd::Complex value);
 
-        double getCoeff(int i, int j, int k, int l) const;
+        capd::Complex getCoeff(int i, int j, int k, int l) const;
 
         PolynomialOf4Variables operator-(PolynomialOf4Variables const& obj) const;
 };
@@ -48,9 +48,9 @@ class PolynomialOf4Variables4
     private:
         PolynomialOf4Variables subfunctions[4];
     public:
-        PolynomialOf4Variables4(int _degree = 0, double fillWith = 0);
+        PolynomialOf4Variables4(int _degree = 0, capd::Complex fillWith = 0);
 
-        PolynomialOf4Variables4(int _degree, int _futureDegree, double fillWith = 0);
+        PolynomialOf4Variables4(int _degree, int _futureDegree, capd::Complex fillWith = 0);
 
         PolynomialOf4Variables& operator()(int index);
 

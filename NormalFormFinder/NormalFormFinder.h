@@ -1,6 +1,7 @@
 #ifndef _NORMAL_FORM_FINDER_H_
 #define _NORMAL_FORM_FINDER_H_
 
+#include "../typedefs.h"
 class PseudoNormalForm;
 
 class NormalFormFinder
@@ -13,7 +14,7 @@ class NormalFormFinder
     public:
         NormalFormFinder(int _degree) : degree(_degree) {}
 
-        PseudoNormalForm calculatePseudoNormalForm(const capd::DMap &f, const capd::DVector &point);
+        PseudoNormalForm calculatePseudoNormalForm(const CMap &f, const CVector &point);
 };
 
 #endif
