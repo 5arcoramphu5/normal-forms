@@ -4,35 +4,27 @@
 using namespace capd;
 using namespace std;
 
-void getLinearPartWithReminder(const CJet &taylor, CMatrix *linearPart, PolynomialOf4Variables4 *reminder)
+void getLinearPartWithReminder(const CJet &taylor, CMatrix *linearPart, CJet *reminder)
 {    
     if(taylor.dimension() != 4)
         throw new runtime_error("Taylor series dimension is invalid.");
 
+    *reminder = taylor;
+
     Complex linearArr[4][4];
-    Multiindex index({1, 0, 0, 0});
-    int i = 0;
-    do
+    for(int i = 0; i < 4; ++i)
     {
+        int indexArr[] = {0, 0, 0, 0};
+        indexArr[i] = 1;
+        Multiindex index(4, indexArr);
+
         for(int j = 0; j < 4; ++j)
-            linearArr[i][j] = taylor(index)[j];
-        i++;
-    }while(index.hasNext());
+            linearArr[i][j] = taylor(j, index);
+
+        (*reminder)(index) = {0, 0, 0, 0};
+    }
 
     *linearPart = CMatrix(linearArr);
-
-    for(int deg = 0; deg <= taylor.degree(); ++deg)
-    {
-        if(deg != 1)
-        {
-            Multiindex index({deg, 0, 0, 0});
-            do
-            {
-                for(int j = 0; j < 4; ++j)
-                    (*reminder)(j).setCoeff(index, taylor(index)[j]);
-            }while(index.hasNext());
-        }
-    }
 }
 
 CJet getTaylorSeries(const CMap &function, int degree)
@@ -59,35 +51,87 @@ CVector getEigenvalues(const DMatrix &matrix)
     return eigenValues;
 }
 
-PolynomialOf4Variables4 proj_P(const PolynomialOf4Variables4 &poly)
+CJet projP(const CJet &poly)
 {
-    int deg = poly.getDegree();
-    PolynomialOf4Variables4 result(deg);
+    int deg = poly.degree();
+    CJet result(4, deg);
 
     for(int i = 0; i < deg; ++i)
         for(int j = 0; 2*i+2*j < deg ; ++j)
         {   
             if(j > 0)
             {
-                result(0).setCoeff(i+1, i, j, j, poly(0).getCoeff(i+1, i, j, j)); // P_1
-                result(1).setCoeff(i, i+1, j, j, poly(1).getCoeff(i, i+1, j, j)); // P_2
+                Multiindex i1({i+1, i, j, j});
+                result(i1)[0] = poly(0, i1); // P_1
+
+                Multiindex i2({i, i+1, j, j});
+                result(i2)[1] = poly(1, i2); // P_2
             }
 
             if(i > 0)
             {
-                result(2).setCoeff(i, i, j+1, j, poly(2).getCoeff(i, i, j+1, j)); // P_3
-                result(3).setCoeff(i, i, j, j+1, poly(3).getCoeff(i, i, j, j+1)); // P_4
+                Multiindex i3({i, i, j+1, j});
+                result(i3)[2] = poly(2, i3); // P_3
+
+                Multiindex i4({i, i, j, j+1});
+                result(i4)[3] = poly(3, i4); // P_4
             }
         }
 
     return result;
 }
 
-PolynomialOf4Variables4 proj_R(const PolynomialOf4Variables4 &poly)
+CJet projR(const CJet &poly)
 {
-    PolynomialOf4Variables4 result(poly.getDegree());
-    auto proj = proj_P(poly);
-    for(int i = 0; i < 4; ++i)
-        result(i) = poly(i) - proj(i);
+    CJet result(4, poly.degree());
+    auto proj = projP(poly);
+    return poly - proj;
+}
+
+string toString(CJet polynomial, string var1, string var2, string var3, string var4)
+{    
+    const Multiindex zero({0, 0, 0, 0});
+    string result = "";
+
+    for(int i = 0; i < polynomial.dimension(); ++i)
+    {
+        stringstream ss;
+        for(int deg = 0; deg <= polynomial.degree(); ++deg)
+        {
+            Multiindex index({deg, 0, 0, 0});
+            do
+            {
+                Complex coeff = polynomial(i, index);
+                if(coeff != Complex(0, 0))
+                {
+                    if(index != zero)
+                    {
+                        if(coeff != Complex(1, 0))
+                        {
+                            if(coeff == Complex(-1, 0)) ss << "-";
+                            else ss << coeff;
+                        }
+                    }
+                    else ss << coeff;
+
+                    if(index[0] > 0) ss << var1<<(index[0] == 1 ? "" : "^"+to_string(index[0]));
+                    if(index[1] > 0) ss << var2<<(index[1] == 1 ? "" : "^"+to_string(index[1]));
+                    if(index[2] > 0) ss << var3<<(index[2] == 1 ? "" : "^"+to_string(index[2]));
+                    if(index[3] > 0) ss << var4<<(index[3] == 1 ? "" : "^"+to_string(index[3]));
+
+                    ss << " + ";
+                }
+            }while(index.hasNext());
+        }
+
+        string str = ss.str();
+        if(str.length() == 0)
+            str = "0";
+        else 
+            str = str.substr(0, str.length()-3);
+
+        result += str + "\n";
+    }
+
     return result;
 }

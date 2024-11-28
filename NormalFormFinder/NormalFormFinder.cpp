@@ -21,20 +21,15 @@ PseudoNormalForm NormalFormFinder::calculatePseudoNormalForm(const CMap &f, cons
     // TODO: check if saddle-focus or saddle-center in X=0
 
     auto taylorSeries = getTaylorSeries(f, degree);
-    cout << taylorSeries.toString() << endl;
+    cout << toString(taylorSeries) << endl;
 
     CMatrix lambda;
-    PolynomialOf4Variables4 reminder(degree);
+    CJet reminder(4, 4, degree);
     getLinearPartWithReminder(taylorSeries, &lambda, &reminder);
 
-    // auto eigenValues = getEigenvalues(lambda);
-    
     cout << "rozbicie na czesci:" << endl;
     cout << lambda << endl;
-    cout << reminder.toString("x", "y", "z", "u") << endl;
-
-    // cout << "wartosci wlasne:" << endl;
-    // cout << eigenValues << endl;
+    cout << toString(reminder) << endl;
 
     PseudoNormalForm result;
     for(int i = 0; i < degree; ++i)

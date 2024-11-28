@@ -2,16 +2,17 @@
 #define _HELPER_FUNCTIONS_
 
 #include "../typedefs.h"
-#include "../Polynomials/PolynomialOf4Variables.h"
 
-void getLinearPartWithReminder(const CJet &taylor, CMatrix *linearPart, PolynomialOf4Variables4 *reminder);
+void getLinearPartWithReminder(const CJet &taylor, CMatrix *linearPart, CJet *reminder);
 
 CJet getTaylorSeries(const CMap &function, int degree);
 
 CVector getEigenvalues(const capd::DMatrix &matrix);
 
-PolynomialOf4Variables4 proj_P(const PolynomialOf4Variables4 &poly);
+CJet projP(const CJet &poly);
 
-PolynomialOf4Variables4 proj_R(const PolynomialOf4Variables4 &poly);
+CJet projR(const CJet &poly);
+
+std::string toString(CJet polynomial, std::string var1 = "x1", std::string var2 = "x2", std::string var3 = "x3", std::string var4 = "x4");
 
 #endif
