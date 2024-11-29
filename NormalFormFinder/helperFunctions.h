@@ -13,6 +13,4 @@ CJet projP(const CJet &poly);
 
 CJet projR(const CJet &poly);
 
-std::string toString(CJet polynomial, std::string var1 = "x1", std::string var2 = "x2", std::string var3 = "x3", std::string var4 = "x4");
-
 #endif

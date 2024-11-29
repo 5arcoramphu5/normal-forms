@@ -3,6 +3,8 @@
 #include "typedefs.h"
 #include "NormalFormFinder/NormalFormFinder.h" 
 #include "NormalFormFinder/PseudoNormalForm.h"
+#include "debugUtils/debugUtils.h"
+
 using namespace std;
 using namespace capd;
 
@@ -26,10 +28,15 @@ int main()
     f.setParameter("p4", Complex(-1, 1));
     f.setParameter("a1", 2);
     f.setParameter("a2", 5);
-    f.setParameter("a3", Complex(0, 1));
+    f.setParameter("a3", 1i);
 
-    NormalFormFinder finder(3);
-    finder.calculatePseudoNormalForm(f, x);
+    NormalFormFinder finder(3, f, x);
+    PseudoNormalForm normalForm = finder.calculatePseudoNormalForm();
+
+    cout << "Phi:\n" << toString(normalForm.getPhi()) << endl;
+    cout << "N:\n" << toString(normalForm.getN()) << endl;
+    cout << "B:\n" << toString(normalForm.getB()) << endl;
+    checkPseudoNormalCondition(normalForm);
 
     return 0;
 }

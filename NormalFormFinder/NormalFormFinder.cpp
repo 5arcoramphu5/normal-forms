@@ -1,7 +1,7 @@
-#include "../typedefs.h"
 #include "NormalFormFinder.h"
 #include "PseudoNormalForm.h"
-#include "HelperFunctions.h"
+#include "helperFunctions.h"
+#include "../debugUtils/debugUtils.h"
 
 #include "capd/capdlib.h"
 #include "capd/matrixAlgorithms/capd2alglib.h"
@@ -11,13 +11,16 @@
 using namespace capd;
 using namespace std;
 
-PseudoNormalForm NormalFormFinder::calculatePseudoNormalForm(const CMap &f, const CVector &point)
+NormalFormFinder::NormalFormFinder(int _degree, const CMap &_f, const CVector &fixedPoint) : degree(_degree), f(_f) 
 {
     if(f.dimension() != 4 || f.imageDimension() != 4)
         throw runtime_error("Dimensions not supported.");
 
     // TODO: move system to set point to X=0
+}
 
+PseudoNormalForm NormalFormFinder::calculatePseudoNormalForm()
+{
     auto taylorSeries = getTaylorSeries(f, degree);
 
     CMatrix linearPart;
@@ -31,7 +34,7 @@ PseudoNormalForm NormalFormFinder::calculatePseudoNormalForm(const CMap &f, cons
     if(pointType == PointType::Unsupported)
         throw new runtime_error("Type of equilibrium point not supported.");
 
-    PseudoNormalForm result;
+    PseudoNormalForm result(degree, taylorSeries);
     for(int i = 0; i < degree; ++i)
     {
         nextIteration(&result);

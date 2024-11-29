@@ -1,5 +1,5 @@
 #include "capd/capdlib.h"
-#include "HelperFunctions.h"
+#include "helperFunctions.h"
 
 using namespace capd;
 using namespace std;
@@ -86,52 +86,4 @@ CJet projR(const CJet &poly)
     CJet result(4, poly.degree());
     auto proj = projP(poly);
     return poly - proj;
-}
-
-string toString(CJet polynomial, string var1, string var2, string var3, string var4)
-{    
-    const Multiindex zero({0, 0, 0, 0});
-    string result = "";
-
-    for(int i = 0; i < polynomial.dimension(); ++i)
-    {
-        stringstream ss;
-        for(int deg = 0; deg <= polynomial.degree(); ++deg)
-        {
-            Multiindex index({deg, 0, 0, 0});
-            do
-            {
-                Complex coeff = polynomial(i, index);
-                if(coeff != Complex(0, 0))
-                {
-                    if(index != zero)
-                    {
-                        if(coeff != Complex(1, 0))
-                        {
-                            if(coeff == Complex(-1, 0)) ss << "-";
-                            else ss << coeff;
-                        }
-                    }
-                    else ss << coeff;
-
-                    if(index[0] > 0) ss << var1<<(index[0] == 1 ? "" : "^"+to_string(index[0]));
-                    if(index[1] > 0) ss << var2<<(index[1] == 1 ? "" : "^"+to_string(index[1]));
-                    if(index[2] > 0) ss << var3<<(index[2] == 1 ? "" : "^"+to_string(index[2]));
-                    if(index[3] > 0) ss << var4<<(index[3] == 1 ? "" : "^"+to_string(index[3]));
-
-                    ss << " + ";
-                }
-            }while(index.hasNext());
-        }
-
-        string str = ss.str();
-        if(str.length() == 0)
-            str = "0";
-        else 
-            str = str.substr(0, str.length()-3);
-
-        result += str + "\n";
-    }
-
-    return result;
 }
