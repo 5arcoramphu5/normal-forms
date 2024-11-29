@@ -30,8 +30,8 @@ string toString(CJet polynomial, string var1, string var2, string var3, string v
                     }
                     else ss << coeff;
                     
-                    for(int i = 0; i < 4; ++i)
-                        if(index[i] > 0) ss << var1<<(index[i] == 1 ? "" : "^"+to_string(index[i]));
+                    for(int j = 0; j < 4; ++j)
+                        if(index[j] > 0) ss << vars[j] <<(index[j] == 1 ? "" : "^"+to_string(index[j]));
 
                     ss << " + ";
                 }

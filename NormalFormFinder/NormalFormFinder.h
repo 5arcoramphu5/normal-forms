@@ -9,10 +9,18 @@ class NormalFormFinder
     private:
         enum PointType{Unsupported, SaddleFocus, SaddleCenter};
 
-        const int degree;
-        CMap f;
+        const int degree; // number of iterations
+        CMap f; // input function
 
-        void nextIteration(PseudoNormalForm *result);
+        // variables used in computations:
+        CJet taylorSeries;
+        CMatrix linearPart;
+        CJet reminder;
+
+        capd::Complex lambda1, lambda2;
+
+        PseudoNormalForm getInitialValues();
+        void nextIteration(PseudoNormalForm *normalForm);
         PointType getPointType(const CMatrix &diagonalMatrix, capd::Complex* lambda1, capd::Complex* lambda2);
 
     public:

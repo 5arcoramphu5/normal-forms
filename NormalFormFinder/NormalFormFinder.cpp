@@ -21,30 +21,51 @@ NormalFormFinder::NormalFormFinder(int _degree, const CMap &_f, const CVector &f
 
 PseudoNormalForm NormalFormFinder::calculatePseudoNormalForm()
 {
-    auto taylorSeries = getTaylorSeries(f, degree);
+    taylorSeries = getTaylorSeries(f, degree);
 
-    CMatrix linearPart;
-    CJet reminder(4, 4, degree);
-    getLinearPartWithReminder(taylorSeries, &linearPart, &reminder);
+    CMatrix _linearPart;
+    CJet _reminder(4, 4, degree);
+    getLinearPartWithReminder(taylorSeries, &_linearPart, &_reminder);
 
     // TODO: diagonalize matrix
 
-    Complex lambda1, lambda2;
+    linearPart = _linearPart;
+    reminder = _reminder;
+
     PointType pointType = getPointType(linearPart, &lambda1, &lambda2);
     if(pointType == PointType::Unsupported)
         throw new runtime_error("Type of equilibrium point not supported.");
 
-    PseudoNormalForm result(degree, taylorSeries);
+    PseudoNormalForm normalForm = getInitialValues();
     for(int i = 0; i < degree; ++i)
     {
-        nextIteration(&result);
+        nextIteration(&normalForm);
     }
-    return result;
+    return normalForm;
 }
 
-void NormalFormFinder::nextIteration(PseudoNormalForm *result)
+PseudoNormalForm NormalFormFinder::getInitialValues()
 {
-    
+    PseudoNormalForm normalForm(degree, taylorSeries);
+
+    for(int i = 0; i < 4; ++i)
+    {
+        int indexArr[4] = {0, 0, 0, 0};
+        indexArr[i] = 1;
+
+        // Phi(1) = Id
+        normalForm.Phi(i, Multiindex(4, indexArr)) = 1;
+
+        // N(1) = linear part (diagonal)
+        normalForm.N(i, Multiindex(4, indexArr)) = linearPart(i+1, i+1);
+    }
+
+    return normalForm;
+}
+
+void NormalFormFinder::nextIteration(PseudoNormalForm *normalForm)
+{
+    normalForm->iteration++;
 }
 
 NormalFormFinder::PointType NormalFormFinder::getPointType(const CMatrix &diagonalMatrix, Complex* lambda1, Complex* lambda2)
