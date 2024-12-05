@@ -3,18 +3,19 @@
 using namespace std;
 using namespace capd;
 
-string toString(CJet polynomial, string var1, string var2, string var3, string var4)
+string toString(CJet polynomial, const string vars[])
 {    
-    string vars[4] = {var1 , var2, var3, var4};
-    const Multiindex zero({0, 0, 0, 0});
+    const Multiindex zero(polynomial.dimension());
     string result = "\t";
 
-    for(int i = 0; i < polynomial.dimension(); ++i)
+    for(int i = 0; i < polynomial.imageDimension(); ++i)
     {
         stringstream ss;
         for(int deg = 0; deg <= polynomial.degree(); ++deg)
         {
-            Multiindex index({deg, 0, 0, 0});
+            Multiindex index(zero);
+            index[0] = deg;
+
             do
             {
                 Complex coeff = polynomial(i, index);

@@ -5,7 +5,8 @@
 #include "../typedefs.h"
 #include "../NormalFormFinder/PseudoNormalForm.h"
 
-std::string toString(CJet polynomial, std::string var1 = "x1", std::string var2 = "x2", std::string var3 = "x3", std::string var4 = "x4");
+const std::string defaultVars[] = {"x1", "x2", "x3", "x4"};
+std::string toString(CJet polynomial, const std::string vars[] = defaultVars);
 
 void checkPseudoNormalCondition(const PseudoNormalForm &normalForm);
 

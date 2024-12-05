@@ -51,13 +51,13 @@ CVector getEigenvalues(const DMatrix &matrix)
     return eigenValues;
 }
 
-CJet projP(const CJet &poly)
+CJet projP(const CJet &poly, int upToDeg)
 {
-    int deg = poly.degree();
-    CJet result(4, deg);
+    int maxDeg = upToDeg != -1 ? std::min((int)poly.degree(), upToDeg) : poly.degree();
+    CJet result(4, maxDeg);
 
-    for(int i = 0; i < deg; ++i)
-        for(int j = 0; 2*i+2*j < deg ; ++j)
+    for(int i = 0; i < maxDeg; ++i)
+        for(int j = 0; 2*i+2*j < maxDeg ; ++j)
         {   
             if(j > 0)
             {
@@ -81,9 +81,101 @@ CJet projP(const CJet &poly)
     return result;
 }
 
-CJet projR(const CJet &poly)
+CJet projR(const CJet &poly, int upToDeg)
 {
-    CJet result(4, poly.degree());
-    auto proj = projP(poly);
-    return poly - proj;
+    int maxDeg = upToDeg != -1 ? std::min((int)poly.degree(), upToDeg) : poly.degree();
+    CJet result(4, maxDeg);
+
+    for(int deg = 0; deg <= maxDeg; ++deg)
+    {
+        Multiindex index({deg, 0, 0, 0});
+        do
+        {
+            for(int i = 0; i < 4; ++i)
+            {
+                bool skip = false;
+                switch(i)
+                {
+                    case 0:
+                        if(index[0]+1 == index[1] && index[2] == index[3])
+                            skip = true;
+                        break;
+                    case 1:
+                        if(index[0] == index[1]+1 && index[2] == index[3])
+                            skip = true;
+                        break;
+                    case 2:
+                        if(index[0] == index[1] && index[2]+1 == index[3])
+                            skip = true;
+                        break;
+                    case 3:
+                        if(index[0] == index[1] && index[2] == index[3]+1)
+                            skip = true;
+                        break;
+                }
+
+                if(!skip)
+                    result(index)[i] = poly(i, index);
+            }
+        }while(index.hasNext());
+    }
+
+    return result;
 }
+
+vector<Complex> gamma(int p, int q, Complex lambda1, Complex lambda2)
+{
+    vector<Complex> data(4);
+
+    data[0] = Complex(p-1, 0)*lambda1 + Complex(q, 0)*lambda2;
+    data[1] = Complex(p+1, 0)*lambda1 + Complex(q, 0)*lambda2;
+    data[2] = Complex(p, 0)*lambda1 + Complex(q-1, 0)*lambda2;
+    data[3] = Complex(p, 0)*lambda1 + Complex(q+1, 0)*lambda2;
+    
+    return data;
+}
+
+bool isNonzero(CColumnVector columnVector)
+{
+    for(Complex x : columnVector)
+    {
+        if(x.real() != 0 || x.imag() != 0) 
+            return true;
+    }
+    return false;
+}
+
+std::unordered_map<std::pair<int,int>,CJet,hash_pair> pqCoefficients(const CJet & poly)
+{
+    unordered_map<pair<int, int>, CJet, hash_pair> coefficients;
+    int degree = poly.degree();
+
+    for(int deg = 0; deg <= degree; ++deg)
+    {
+        Multiindex index({deg, 0, 0, 0});
+        do
+        {
+            auto coeffVector = poly(index);
+
+            if(isNonzero(coeffVector))
+            {
+                int p = index[0] - index[1]; // j - k
+                int q = index[2] - index[3]; // l - m
+                auto pair_pq = make_pair(p, q);
+
+                if (coefficients.find(pair_pq) == coefficients.end()) // not present in dictionary
+                {
+                    CJet newElem(4, 2, 2*degree);
+                    coefficients.insert(make_pair(pair_pq, newElem));
+                }
+
+                Multiindex coefficientIndex({index[1], index[3]}); // (k, m)
+                coefficients[pair_pq](coefficientIndex) += coeffVector;
+            }
+        }
+        while(index.hasNext());
+    }
+
+    return coefficients;
+}
+
