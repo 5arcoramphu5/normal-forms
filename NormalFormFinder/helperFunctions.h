@@ -11,9 +11,9 @@ CJet getTaylorSeries(const CMap &function, int degree);
 
 CVector getEigenvalues(const capd::DMatrix &matrix);
 
-CJet projP(const CJet &poly, int upToDeg = -1);
+CJet projP(const CJet &poly, int upToDegree = -1);
 
-CJet projR(const CJet &poly, int upToDeg = -1);
+CJet projR(const CJet &poly, int upToDegree = -1);
 
 std::vector<capd::Complex> gamma(int p, int q, capd::Complex lambda1, capd::Complex lambda2);
 
@@ -28,6 +28,8 @@ struct hash_pair {
     }
 };
 
-std::unordered_map<std::pair<int, int>, CJet, hash_pair> pqCoefficients(const CJet &poly);
+std::unordered_map<std::pair<int, int>, CJet, hash_pair> pqCoefficients(const CJet &poly, int upToDegree);
+
+CJet polyDivision(const CJet &numerator, const CJet &denominator);
 
 #endif

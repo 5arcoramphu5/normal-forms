@@ -51,9 +51,9 @@ CVector getEigenvalues(const DMatrix &matrix)
     return eigenValues;
 }
 
-CJet projP(const CJet &poly, int upToDeg)
+CJet projP(const CJet &poly, int upToDegree)
 {
-    int maxDeg = upToDeg != -1 ? std::min((int)poly.degree(), upToDeg) : poly.degree();
+    int maxDeg = upToDegree != -1 ? std::min((int)poly.degree(), upToDegree) : poly.degree();
     CJet result(4, maxDeg);
 
     for(int i = 0; i < maxDeg; ++i)
@@ -81,9 +81,9 @@ CJet projP(const CJet &poly, int upToDeg)
     return result;
 }
 
-CJet projR(const CJet &poly, int upToDeg)
+CJet projR(const CJet &poly, int upToDegree)
 {
-    int maxDeg = upToDeg != -1 ? std::min((int)poly.degree(), upToDeg) : poly.degree();
+    int maxDeg = upToDegree != -1 ? std::min((int)poly.degree(), upToDegree) : poly.degree();
     CJet result(4, maxDeg);
 
     for(int deg = 0; deg <= maxDeg; ++deg)
@@ -145,12 +145,11 @@ bool isNonzero(CColumnVector columnVector)
     return false;
 }
 
-std::unordered_map<std::pair<int,int>,CJet,hash_pair> pqCoefficients(const CJet & poly)
+std::unordered_map<std::pair<int,int>,CJet,hash_pair> pqCoefficients(const CJet & poly, int upToDegree)
 {
     unordered_map<pair<int, int>, CJet, hash_pair> coefficients;
-    int degree = poly.degree();
 
-    for(int deg = 0; deg <= degree; ++deg)
+    for(int deg = 0; deg <= upToDegree; ++deg)
     {
         Multiindex index({deg, 0, 0, 0});
         do
@@ -165,7 +164,7 @@ std::unordered_map<std::pair<int,int>,CJet,hash_pair> pqCoefficients(const CJet 
 
                 if (coefficients.find(pair_pq) == coefficients.end()) // not present in dictionary
                 {
-                    CJet newElem(4, 2, 2*degree);
+                    CJet newElem(4, 2, upToDegree);
                     coefficients.insert(make_pair(pair_pq, newElem));
                 }
 
@@ -177,5 +176,26 @@ std::unordered_map<std::pair<int,int>,CJet,hash_pair> pqCoefficients(const CJet 
     }
 
     return coefficients;
+}
+
+// division of two polynomials C^2 -> C^4
+CJet polyDivision(const CJet &numerator, const CJet &denominator)
+{
+    // TODO: implement proper division
+
+    CJet result(numerator);
+    Multiindex zero({0, 0});
+
+    for(int deg = 0; deg < numerator.degree(); ++deg)
+    {
+        Multiindex index({deg, 0});
+        do
+        {
+            for(int i = 0; i < 4; ++i)
+                result(i, index) /= denominator(i, zero);
+
+        }while(index.hasNext());
+    }
+    return result;
 }
 

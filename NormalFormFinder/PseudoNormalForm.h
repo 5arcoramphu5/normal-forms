@@ -7,28 +7,26 @@
 class PseudoNormalForm
 {
     private:
-        PseudoNormalForm(int degree, CJet fTaylorSeries) : F(fTaylorSeries), Phi(4, degree), N(4, degree), B(4, degree), iteration(0) {}
+        PseudoNormalForm(int degree, CJet fTaylorSeries) : F(fTaylorSeries), phi(4, 4, degree), n(4, 4, degree), b(4, 4, degree) {}
 
-        int iteration;
-
-        CJet Phi;   
-        CJet N;
-        CJet B; 
+        CJet phi;   
+        CJet n;
+        CJet b; 
 
     public:
         const CJet F; // Taylor series expansions of the input function
 
         // transformation
         CJet getPhi() const
-        { return Phi; }
+        { return phi; }
         
         // normal form
         CJet getN() const
-        { return N; }
+        { return n; }
 
         // reminder term
         CJet getB() const
-        { return B; }
+        { return b; }
 
     friend NormalFormFinder;
 };
