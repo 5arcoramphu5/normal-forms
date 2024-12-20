@@ -182,11 +182,10 @@ std::unordered_map<std::pair<int,int>,CJet,hash_pair> pqCoefficients(const CJet 
 CJet polyDivision(const CJet &numerator, const CJet &denominator)
 {
     // TODO: implement proper division
-
     CJet result(numerator);
     Multiindex zero({0, 0});
 
-    for(int deg = 0; deg < numerator.degree(); ++deg)
+    for(int deg = 0; deg <= numerator.degree(); ++deg)
     {
         Multiindex index({deg, 0});
         do

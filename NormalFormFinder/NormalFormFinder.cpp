@@ -37,11 +37,10 @@ PseudoNormalForm NormalFormFinder::calculatePseudoNormalForm()
 
     for(int i = 0; i < degree; ++i)
     {
-        cout << "----- iteration: " << i << " -----" << endl;
-        
         nextIteration(&normalForm);
         
         // debug
+        cout << "------------------------" << endl;
         cout << "Phi:\n" << toString(normalForm.getPhi()) << endl;
         cout << "N:\n" << toString(normalForm.getN()) << endl;
         cout << "B:\n" << toString(normalForm.getB()) << endl;
@@ -67,20 +66,22 @@ PseudoNormalForm NormalFormFinder::getInitialNormalFormValues()
 
 void NormalFormFinder::setInitialValues()
 {
-    iterations = 0;
+    iterations = 1;
 
-    a1_reminder = CJet(1, 2, degree);
-    a2_reminder = CJet(1, 2, degree);
+    a1_reminder = CJet(1, 2, degree+1);
+    a2_reminder = CJet(1, 2, degree+1);
 }
 
 void NormalFormFinder::nextIteration(PseudoNormalForm *normalForm)
 {
-    iterations++;
+    cout << "----- iteration: " << iterations << " -----" << endl;
+        
     CJet FPhi(4, 4, f_reminder.degree() * normalForm->phi.degree());
     substitutionPowerSeries(f_reminder, normalForm->phi, FPhi, false);
-
+    
     solveFirstEquation(normalForm->phi, FPhi);
     solveSecondEquation(normalForm->n, normalForm->b, FPhi);
+    iterations++;
 }
 
 NormalFormFinder::PointType NormalFormFinder::getPointType(const CMatrix &diagonalMatrix, Complex* lambda1, Complex* lambda2)
@@ -117,7 +118,7 @@ NormalFormFinder::PointType NormalFormFinder::getPointType(const CMatrix &diagon
 
 void NormalFormFinder::solveFirstEquation(CJet &Psi, const CJet &H)
 {
-    auto RH = projR(H, iterations+1);
+    CJet RH = projR(H, iterations+1);
     Psi = CJet(4, 4, degree);
 
     auto pq_coeffs = pqCoefficients(RH, iterations+1);
@@ -161,4 +162,60 @@ void NormalFormFinder::solveFirstEquation(CJet &Psi, const CJet &H)
 
 void NormalFormFinder::solveSecondEquation(CJet &N, CJet &B, const CJet &H)
 {
+    // get h1, h2, h3, h4 - parts of P projection of H
+    CJet h[4]; 
+    for(int i = 0; i < 4; ++i)
+        h[i] = CJet(1, 2, iterations+1);
+
+    for(int i = 0; i < iterations+1; ++i)
+        for(int j = 0; 2*i+2*j < iterations+1; ++j)
+        {   
+            Multiindex index({i, j});
+            if(j > 0)
+            {
+                h[0](0, index) = H(0, Multiindex({i+1, i, j, j}));
+                h[1](0, index) = H(1, Multiindex({i, i+1, j, j}));
+            }
+            if(i > 0)
+            {
+                h[2](0, index) = H(2, Multiindex({i, i, j+1, j}));
+                h[3](0, index) = H(3, Multiindex({i, i, j, j+1}));
+            }
+        }
+
+    // calculate a1, a2, b1, b2
+    CJet b1(1, 2, iterations+1), b2(1, 2, iterations+1);
+
+    for(int deg = 0; deg <= iterations+1; ++deg)
+    {
+        Multiindex index({deg, 0});
+        do 
+        {
+            a1_reminder(0, index) = (h[0](0, index) - h[1](0, index)) / Complex(2, 0);
+            a2_reminder(0, index) = (h[2](0, index) - h[3](0, index)) / Complex(2, 0);
+            b1(0, index) = (h[0](0, index) + h[1](0, index)) / Complex(2, 0);
+            b2(0, index) = (h[2](0, index) - h[3](0, index)) / Complex(2, 0);
+            
+        }while(index.hasNext());
+    }
+
+    // calculate N and B
+    for(int deg = 0; deg <= iterations+1 && 2*deg + 1 <= N.degree(); ++deg)
+    {
+        Multiindex index({deg, 0});
+        do 
+        {
+            N(0, Multiindex({index[0]+1, index[0], index[1], index[1]})) = a1_reminder(0, index);
+            N(1, Multiindex({index[0], index[0]+1, index[1], index[1]})) = -a1_reminder(0, index);
+            N(2, Multiindex({index[0], index[0], index[1]+1, index[1]})) = a2_reminder(0, index);
+            N(3, Multiindex({index[0], index[0], index[1], index[1]+1})) = -a2_reminder(0, index);
+
+            B(0, Multiindex({index[0]+1, index[0], index[1], index[1]})) = b1(0, index);
+            B(1, Multiindex({index[0], index[0]+1, index[1], index[1]})) = b1(0, index);
+            B(2, Multiindex({index[0], index[0], index[1]+1, index[1]})) = b2(0, index);
+            B(3, Multiindex({index[0], index[0], index[1], index[1]+1})) = b2(0, index);
+            
+        }while(index.hasNext());
+    }
+
 }

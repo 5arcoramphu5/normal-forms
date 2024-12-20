@@ -33,7 +33,7 @@ ${PROGS}: % : ${OBJDIR}%.o ${OTHERS_OBJ}
 #rule to compile .cpp files and generate corresponding files with dependencies
 ${OBJ_FILES}: ${OBJDIR}%.o : %.cpp
 	@mkdir -p ${dir $@}
-	$(CXX) ${CXXFLAGS} -MT $@ -MD -MP -MF ${@:%=%.d} -c -o $@ $<
+	$(CXX) -g ${CXXFLAGS} -MT $@ -MD -MP -MF ${@:%=%.d} -c -o $@ $<
 
 # rule to clean all object files, dependencies and executables
 .PHONY: clean
