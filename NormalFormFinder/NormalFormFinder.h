@@ -2,8 +2,10 @@
 #define _NORMAL_FORM_FINDER_H_
 
 #include "../typedefs.h"
+#include "../debugUtils/logging.h"
 class PseudoNormalForm;
 
+template<LoggerType Logger = Logger<VerbosityLevel::None>>
 class NormalFormFinder
 {
     private:
@@ -33,6 +35,12 @@ class NormalFormFinder
         void solveFirstEquation(CJet &Psi, const CJet &H);
         // solves equation of type: N + B = P(H)
         void solveSecondEquation(CJet &N, CJet &B, const CJet &H);
+
+        template<VerbosityLevel MessageVerbosity>
+        static void log(std::string message)
+        { 
+            Logger::template print<MessageVerbosity>(message); 
+        }
 
     public:
         NormalFormFinder(int _degree, const CMap &_f, const CVector &fixedPoint);

@@ -1,10 +1,8 @@
 #include <iostream>
 
 #include "typedefs.h"
-#include "NormalFormFinder/NormalFormFinder.h" 
-#include "NormalFormFinder/PseudoNormalForm.h"
 #include "debugUtils/debugUtils.h"
-
+#include "NormalFormFinder/NormalFormFinder.cpp"
 using namespace std;
 using namespace capd;
 
@@ -30,7 +28,7 @@ int main()
     f.setParameter("a2", 5);
     f.setParameter("a3", 1i);
 
-    NormalFormFinder finder(3, f, x);
+    NormalFormFinder<Logger<VerbosityLevel::None>> finder(3, f, x);
     PseudoNormalForm normalForm = finder.calculatePseudoNormalForm();
 
     cout << "Phi:\n" << toString(normalForm.getPhi()) << endl;

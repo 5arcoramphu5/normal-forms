@@ -28,7 +28,8 @@ class PseudoNormalForm
         CJet getB() const
         { return b; }
 
-    friend NormalFormFinder;
+    template<LoggerType Logger>
+    friend class NormalFormFinder;
 };
 
 #endif

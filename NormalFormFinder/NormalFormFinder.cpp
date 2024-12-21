@@ -11,13 +11,15 @@
 using namespace capd;
 using namespace std;
 
-NormalFormFinder::NormalFormFinder(int _degree, const CMap &_f, const CVector &fixedPoint) : degree(_degree), f(_f)
+template<LoggerType Logger>
+NormalFormFinder<Logger>::NormalFormFinder(int _degree, const CMap &_f, const CVector &fixedPoint) : degree(_degree), f(_f)
 {
     if(f.dimension() != 4 || f.imageDimension() != 4)
         throw runtime_error("Dimensions not supported.");
 }
 
-PseudoNormalForm NormalFormFinder::calculatePseudoNormalForm()
+template<LoggerType Logger>
+PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
 {
     taylorSeries = getTaylorSeries(f, degree);
 
@@ -39,16 +41,16 @@ PseudoNormalForm NormalFormFinder::calculatePseudoNormalForm()
     {
         nextIteration(&normalForm);
         
-        // debug
-        cout << "------------------------" << endl;
-        cout << "Phi:\n" << toString(normalForm.getPhi()) << endl;
-        cout << "N:\n" << toString(normalForm.getN()) << endl;
-        cout << "B:\n" << toString(normalForm.getB()) << endl;
+        log<VerbosityLevel::Diagnostic>("------------------------");
+        log<VerbosityLevel::Minimal>("Phi:\n" + toString(normalForm.getPhi()));
+        log<VerbosityLevel::Minimal>("N:\n" + toString(normalForm.getN()));
+        log<VerbosityLevel::Minimal>("B:\n" + toString(normalForm.getB()));
     }
     return normalForm;
 }
 
-PseudoNormalForm NormalFormFinder::getInitialNormalFormValues()
+template<LoggerType Logger>
+PseudoNormalForm NormalFormFinder<Logger>::getInitialNormalFormValues()
 {
     PseudoNormalForm normalForm(degree, taylorSeries);
 
@@ -64,7 +66,8 @@ PseudoNormalForm NormalFormFinder::getInitialNormalFormValues()
     return normalForm;
 }
 
-void NormalFormFinder::setInitialValues()
+template<LoggerType Logger>
+void NormalFormFinder<Logger>::setInitialValues()
 {
     iterations = 1;
 
@@ -72,9 +75,10 @@ void NormalFormFinder::setInitialValues()
     a2_reminder = CJet(1, 2, degree+1);
 }
 
-void NormalFormFinder::nextIteration(PseudoNormalForm *normalForm)
+template<LoggerType Logger>
+void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm *normalForm)
 {
-    cout << "----- iteration: " << iterations << " -----" << endl;
+    log<VerbosityLevel::Minimal>("----- iteration: " + to_string(iterations) + " -----");
         
     CJet FPhi(4, 4, f_reminder.degree() * normalForm->phi.degree());
     substitutionPowerSeries(f_reminder, normalForm->phi, FPhi, false);
@@ -84,7 +88,8 @@ void NormalFormFinder::nextIteration(PseudoNormalForm *normalForm)
     iterations++;
 }
 
-NormalFormFinder::PointType NormalFormFinder::getPointType(const CMatrix &diagonalMatrix, Complex* lambda1, Complex* lambda2)
+template<LoggerType Logger>
+typename NormalFormFinder<Logger>::PointType NormalFormFinder<Logger>::getPointType(const CMatrix &diagonalMatrix, Complex* lambda1, Complex* lambda2)
 {
     Complex eigenValues[4];
     for(int i = 0; i < 4; ++i) 
@@ -116,7 +121,8 @@ NormalFormFinder::PointType NormalFormFinder::getPointType(const CMatrix &diagon
     return PointType::Unsupported;
 }
 
-void NormalFormFinder::solveFirstEquation(CJet &Psi, const CJet &H)
+template<LoggerType Logger>
+void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
 {
     CJet RH = projR(H, iterations+1);
     Psi = CJet(4, 4, degree);
@@ -160,7 +166,8 @@ void NormalFormFinder::solveFirstEquation(CJet &Psi, const CJet &H)
     }
 }
 
-void NormalFormFinder::solveSecondEquation(CJet &N, CJet &B, const CJet &H)
+template<LoggerType Logger>
+void NormalFormFinder<Logger>::solveSecondEquation(CJet &N, CJet &B, const CJet &H)
 {
     // get h1, h2, h3, h4 - parts of P projection of H
     CJet h[4]; 
