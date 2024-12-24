@@ -41,7 +41,7 @@ PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
     {
         nextIteration(&normalForm);
         
-        log<VerbosityLevel::Diagnostic>("------------------------");
+        log<VerbosityLevel::Diagnostic>("--------------------------------");
         log<VerbosityLevel::Minimal>("Phi:\n" + toString(normalForm.getPhi()));
         log<VerbosityLevel::Minimal>("N:\n" + toString(normalForm.getN()));
         log<VerbosityLevel::Minimal>("B:\n" + toString(normalForm.getB()));
@@ -78,7 +78,7 @@ void NormalFormFinder<Logger>::setInitialValues()
 template<LoggerType Logger>
 void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm *normalForm)
 {
-    log<VerbosityLevel::Minimal>("----- iteration: " + to_string(iterations) + " -----");
+    log<VerbosityLevel::Minimal>("--------- iteration: " + to_string(iterations) + " ---------");
         
     CJet FPhi(4, 4, f_reminder.degree() * normalForm->phi.degree());
     substitutionPowerSeries(f_reminder, normalForm->phi, FPhi, false);
@@ -87,6 +87,7 @@ void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm *normalForm)
     checkFirstEquation(normalForm->phi, FPhi, normalForm->n);
 
     solveSecondEquation(normalForm->n, normalForm->b, FPhi);
+    checkSecondEquation(normalForm->n, normalForm->b, FPhi);
 
     iterations++;
 }
@@ -128,7 +129,15 @@ template<LoggerType Logger>
 void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
 {
     CJet RH = projR(H, iterations+1);
+
+    // set id as linear part
     Psi = CJet(4, 4, degree);
+    for(int i = 0; i < 4; ++i)
+    {
+        Multiindex index({0, 0, 0, 0});
+        index[i] = 1;
+        Psi(i, index) = 1;
+    }
 
     auto pq_coeffs = pqCoefficients(RH, iterations+1);
 
@@ -172,8 +181,8 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
 template <LoggerType Logger>
 void NormalFormFinder<Logger>::checkFirstEquation(const CJet &Psi, const CJet &H, const CJet &N)
 {
-    auto LHS = upToDegree(operatorL(projR(Psi), N, linearPart), iterations+1);
-    auto RHS = upToDegree(projR(H), iterations+1);
+    auto LHS = fromToDegree(operatorL(projR(reminderPart(Psi)), N, linearPart), 0, iterations+1);
+    auto RHS = fromToDegree(projR(H), 0, iterations+1);
     log<VerbosityLevel::Diagnostic>("first equation (LHS - RHS):");
     log<VerbosityLevel::Diagnostic>(toString(jetSubstraction(LHS, RHS)));
 }
@@ -237,4 +246,13 @@ void NormalFormFinder<Logger>::solveSecondEquation(CJet &N, CJet &B, const CJet 
         }while(index.hasNext());
     }
 
+}
+
+template <LoggerType Logger>
+void NormalFormFinder<Logger>::checkSecondEquation(const CJet &N, const CJet &B, const CJet &H)
+{
+    auto LHS = fromToDegree(jetAddition(reminderPart(N), reminderPart(B)), 0, iterations+1);
+    auto RHS = fromToDegree(projP(H), 0, iterations+1);
+    log<VerbosityLevel::Diagnostic>("second equation (LHS - RHS):");
+    log<VerbosityLevel::Diagnostic>(toString(jetSubstraction(LHS, RHS)));
 }

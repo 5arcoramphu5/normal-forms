@@ -198,15 +198,17 @@ CJet polyDivision(const CJet &numerator, const CJet &denominator)
     return result;
 }
 
-CJet upToDegree(const CJet &poly, int degree)
+CJet fromToDegree(const CJet &poly, int degreeFrom, int degreeTo)
 {
-    if(degree <= poly.degree())
-        return poly;
+    if(degreeFrom < 0 || degreeTo < 0 || degreeFrom > degreeTo) throw runtime_error("invalid degrees");
+
+    if(degreeTo > poly.degree())
+        degreeTo = poly.degree();
     
     const Multiindex zero(poly.dimension());
-    CJet result(poly.imageDimension(), poly.dimension(), degree);
+    CJet result(poly.imageDimension(), poly.dimension(), degreeTo);
 
-    for(int deg = 0; deg <= degree; ++deg)
+    for(int deg = degreeFrom; deg <= degreeTo; ++deg)
     {
         Multiindex index(zero);
         index[0] = deg;
@@ -259,16 +261,47 @@ CJet operatorL(const CJet Psi, const CJet &N, const CMatrix &lambda)
     return jetSubstraction(multiply(D(Psi), N), lambda*Psi);
 }
 
-CJet jetSubstraction(const CJet &p1, const CJet &p2)
+CJet jetSubstraction(const CJet &p1, const CJet &p2) // TODO: to be deleted
 {
-    CJet result(p1);
-    for(int deg = 0; deg <= p2.degree(); ++deg)
+    int resultDegree = std::max(p1.degree(), p2.degree());
+    CJet result(4, 4, resultDegree);
+
+    for(int deg = 0; deg <= resultDegree; ++deg)
     {
         Multiindex index({deg, 0, 0, 0});
         do
         {
             for(int i = 0; i < 4; ++i)
-                result(i, index) -= p2(i, index);
+            {
+                if(deg <= p1.degree())
+                    result(i, index) += p1(i, index);
+                
+                if(deg <= p2.degree())
+                    result(i, index) -= p2(i, index);
+            }
+        }while(index.hasNext());
+    }
+    return result;
+}
+
+CJet jetAddition(const CJet &p1, const CJet &p2) // TODO: to be deleted
+{
+    int resultDegree = std::max(p1.degree(), p2.degree());
+    CJet result(4, 4, resultDegree);
+
+    for(int deg = 0; deg <= resultDegree; ++deg)
+    {
+        Multiindex index({deg, 0, 0, 0});
+        do
+        {
+            for(int i = 0; i < 4; ++i)
+            {
+                if(deg <= p1.degree())
+                    result(i, index) += p1(i, index);
+                
+                if(deg <= p2.degree())
+                    result(i, index) += p2(i, index);
+            }
         }while(index.hasNext());
     }
     return result;

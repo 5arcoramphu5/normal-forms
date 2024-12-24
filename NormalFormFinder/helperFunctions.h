@@ -32,11 +32,13 @@ std::unordered_map<std::pair<int, int>, CJet, hash_pair> pqCoefficients(const CJ
 
 CJet polyDivision(const CJet &numerator, const CJet &denominator);
 
-CJet upToDegree(const CJet &poly, int degree);
+CJet fromToDegree(const CJet &poly, int degreeFrom, int degreeTo);
 
 CJet operatorL(const CJet Psi, const CJet &N, const CMatrix &lambda);
 
 CJet jetSubstraction(const CJet &p1, const CJet &p2);
+
+CJet jetAddition(const CJet &p1, const CJet &p2);
 
 template<int N>
 class CJetMatrix : public std::array<std::array<CJet, N>, N>
@@ -55,5 +57,8 @@ class CJetMatrix : public std::array<std::array<CJet, N>, N>
 };
 
 CJetMatrix<4> D(const CJet &F);
+
+CJet inline reminderPart(const CJet &poly)
+{ return fromToDegree(poly, 2, poly.degree()); }
 
 #endif

@@ -38,6 +38,8 @@ class NormalFormFinder
 
         void checkFirstEquation(const CJet &Psi, const CJet &H, const CJet &N);
 
+        void checkSecondEquation(const CJet &N, const CJet &B, const CJet &H);
+
         template<VerbosityLevel MessageVerbosity, Streamable MessageType>
         static inline void log(MessageType message)
         { 
