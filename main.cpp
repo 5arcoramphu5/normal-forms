@@ -28,7 +28,7 @@ int main()
     f.setParameter("a2", 5);
     f.setParameter("a3", 1i);
 
-    NormalFormFinder<Logger<VerbosityLevel::None>> finder(3, f, x);
+    NormalFormFinder<Logger<VerbosityLevel::Diagnostic>> finder(2, f, x);
     PseudoNormalForm normalForm = finder.calculatePseudoNormalForm();
 
     cout << "Phi:\n" << toString(normalForm.getPhi()) << endl;

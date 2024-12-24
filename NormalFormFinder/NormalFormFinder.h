@@ -36,8 +36,10 @@ class NormalFormFinder
         // solves equation of type: N + B = P(H)
         void solveSecondEquation(CJet &N, CJet &B, const CJet &H);
 
-        template<VerbosityLevel MessageVerbosity>
-        static void log(std::string message)
+        void checkFirstEquation(const CJet &Psi, const CJet &H, const CJet &N);
+
+        template<VerbosityLevel MessageVerbosity, Streamable MessageType>
+        static inline void log(MessageType message)
         { 
             Logger::template print<MessageVerbosity>(message); 
         }

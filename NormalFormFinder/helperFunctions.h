@@ -32,4 +32,28 @@ std::unordered_map<std::pair<int, int>, CJet, hash_pair> pqCoefficients(const CJ
 
 CJet polyDivision(const CJet &numerator, const CJet &denominator);
 
+CJet upToDegree(const CJet &poly, int degree);
+
+CJet operatorL(const CJet Psi, const CJet &N, const CMatrix &lambda);
+
+CJet jetSubstraction(const CJet &p1, const CJet &p2);
+
+template<int N>
+class CJetMatrix : public std::array<std::array<CJet, N>, N>
+{
+    int matrixDegree;
+
+    public:
+    CJetMatrix(int degree) : matrixDegree(degree)
+    { 
+        for(auto &array : *this)
+            for(auto &jet : array)
+                jet = CJet(1, N, degree);
+    }
+
+    int degree() const { return matrixDegree; }
+};
+
+CJetMatrix<4> D(const CJet &F);
+
 #endif

@@ -198,3 +198,108 @@ CJet polyDivision(const CJet &numerator, const CJet &denominator)
     return result;
 }
 
+CJet upToDegree(const CJet &poly, int degree)
+{
+    if(degree <= poly.degree())
+        return poly;
+    
+    const Multiindex zero(poly.dimension());
+    CJet result(poly.imageDimension(), poly.dimension(), degree);
+
+    for(int deg = 0; deg <= degree; ++deg)
+    {
+        Multiindex index(zero);
+        index[0] = deg;
+
+        do
+        {
+            for(int i = 0; i < poly.imageDimension(); ++i)
+                result(i, index) = poly(i, index);
+        }while(index.hasNext());
+    }
+
+    return result;
+}
+
+void multiplyAndAdd(CJet &accumulator, int accumulatorIndex, const CJet &p1, int p1Index, const CJet &p2, int p2Index)
+{
+    for(int deg1 = 0; deg1 <= p1.degree(); ++deg1)
+    {
+        Multiindex index1({deg1, 0, 0, 0});
+        do
+        {
+            for(int deg2 = 0; deg2 <= p2.degree(); ++deg2)
+            {
+                Multiindex index2({deg2, 0, 0, 0});
+                do
+                {
+                    Multiindex indexSum({index1[0]+index2[0], index1[1]+index2[1], index1[2]+index2[2], index1[3]+index2[3]});
+                    accumulator(accumulatorIndex, indexSum) += p1(p1Index, index1) * p2(p2Index, index2); 
+                }while(index2.hasNext());
+            }
+        }while(index1.hasNext());
+    }
+}
+
+CJet multiply(const CJetMatrix<4> &jetMatrix, const CJet &jet)
+{
+    if(jet.dimension() != 4) throw runtime_error("invalid dimension for jet matrix multiplication.");
+
+    CJet result(4, 4, jetMatrix.degree() + jet.degree());
+
+    for(int row = 0; row < 4; ++row)
+        for(int i = 0; i < 4; ++i)
+            multiplyAndAdd(result, row, jetMatrix[row][i], 0, jet, i);
+
+    return result;
+}
+
+CJet operatorL(const CJet Psi, const CJet &N, const CMatrix &lambda)
+{
+    return jetSubstraction(multiply(D(Psi), N), lambda*Psi);
+}
+
+CJet jetSubstraction(const CJet &p1, const CJet &p2)
+{
+    CJet result(p1);
+    for(int deg = 0; deg <= p2.degree(); ++deg)
+    {
+        Multiindex index({deg, 0, 0, 0});
+        do
+        {
+            for(int i = 0; i < 4; ++i)
+                result(i, index) -= p2(i, index);
+        }while(index.hasNext());
+    }
+    return result;
+}
+
+CJetMatrix<4> D(const CJet &F)
+{
+    CJetMatrix<4> result(F.degree());
+
+    const Multiindex zero(F.dimension());
+
+    for(int i = 0; i < F.imageDimension(); ++i)
+        for(int j = 0; j < F.dimension(); ++j)
+        {   
+            // d f_i / d x_j
+            for(int deg = 1; deg <= F.degree(); ++deg)
+            {
+                Multiindex index(zero);
+                index[0] = deg;
+                do
+                {
+                    if(index[j] > 0)
+                    {
+                        Multiindex newIndex(index);
+                        newIndex[j] -= 1;
+                        result[i][j](0, newIndex) = Complex(index[j], 0) * F(i, index);
+                    }
+
+                }while(index.hasNext());
+            }
+        }
+    
+    return result;
+}

@@ -84,7 +84,10 @@ void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm *normalForm)
     substitutionPowerSeries(f_reminder, normalForm->phi, FPhi, false);
     
     solveFirstEquation(normalForm->phi, FPhi);
+    checkFirstEquation(normalForm->phi, FPhi, normalForm->n);
+
     solveSecondEquation(normalForm->n, normalForm->b, FPhi);
+
     iterations++;
 }
 
@@ -164,6 +167,15 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
             }while(ind.hasNext());
         }
     }
+}
+
+template <LoggerType Logger>
+void NormalFormFinder<Logger>::checkFirstEquation(const CJet &Psi, const CJet &H, const CJet &N)
+{
+    auto LHS = upToDegree(operatorL(projR(Psi), N, linearPart), iterations+1);
+    auto RHS = upToDegree(projR(H), iterations+1);
+    log<VerbosityLevel::Diagnostic>("first equation (LHS - RHS):");
+    log<VerbosityLevel::Diagnostic>(toString(jetSubstraction(LHS, RHS)));
 }
 
 template<LoggerType Logger>
