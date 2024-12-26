@@ -5,11 +5,9 @@
 #include <unordered_map>
 #include <vector>
 
-void getLinearPartWithReminder(const CJet &taylor, CMatrix *linearPart, CJet *reminder);
+void getLinearPartWithReminder(const CJet &taylor, CMatrix &linearPart, CJet &reminder);
 
 CJet getTaylorSeries(const CMap &function, int degree);
-
-CVector getEigenvalues(const capd::DMatrix &matrix);
 
 CJet projP(const CJet &poly, int upToDegree = -1);
 

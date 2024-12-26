@@ -27,9 +27,9 @@ class NormalFormFinder
 
         PseudoNormalForm getInitialNormalFormValues();
         void setInitialValues();
-        void nextIteration(PseudoNormalForm *normalForm);
+        void nextIteration(PseudoNormalForm &normalForm);
 
-        PointType getPointType(const CMatrix &diagonalMatrix, capd::Complex* lambda1, capd::Complex* lambda2);
+        PointType getPointType(const CMatrix &diagonalMatrix, capd::Complex &lambda1, capd::Complex &lambda2);
 
         // solves equation of type: L(R(Psi)) = R(H)
         void solveFirstEquation(CJet &Psi, const CJet &H);

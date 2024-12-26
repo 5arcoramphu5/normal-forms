@@ -21,38 +21,37 @@ NormalFormFinder<Logger>::NormalFormFinder(int _degree, const CMap &_f, const CV
 template<LoggerType Logger>
 PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
 {
-    taylorSeries = getTaylorSeries(f, degree);
+    taylorSeries = getTaylorSeries(f, degree+1);
 
-    CMatrix _linearPart;
-    CJet _reminder(4, 4, degree);
-    getLinearPartWithReminder(taylorSeries, &_linearPart, &_reminder);
+    f_reminder = CJet(4, 4, degree+1);
+    getLinearPartWithReminder(taylorSeries, linearPart, f_reminder);
 
-    linearPart = _linearPart;
-    f_reminder = _reminder;
-
-    PointType pointType = getPointType(linearPart, &lambda1, &lambda2);
+    PointType pointType = getPointType(linearPart, lambda1, lambda2);
     if(pointType == PointType::Unsupported)
         throw new runtime_error("Type of equilibrium point not supported.");
 
     PseudoNormalForm normalForm = getInitialNormalFormValues();
     setInitialValues();
 
-    for(int i = 0; i < degree; ++i)
+    for(iterations = 1; iterations <= degree; ++iterations)
     {
-        nextIteration(&normalForm);
+        log<VerbosityLevel::Minimal>("--------- iteration: " + to_string(iterations) + " ---------");
+
+        nextIteration(normalForm);
         
         log<VerbosityLevel::Diagnostic>("--------------------------------");
         log<VerbosityLevel::Minimal>("Phi:\n" + toString(normalForm.getPhi()));
         log<VerbosityLevel::Minimal>("N:\n" + toString(normalForm.getN()));
         log<VerbosityLevel::Minimal>("B:\n" + toString(normalForm.getB()));
     }
+    
     return normalForm;
 }
 
 template<LoggerType Logger>
 PseudoNormalForm NormalFormFinder<Logger>::getInitialNormalFormValues()
 {
-    PseudoNormalForm normalForm(degree, taylorSeries);
+    PseudoNormalForm normalForm(degree+1, taylorSeries);
 
     for(int i = 0; i < 4; ++i)
     {
@@ -69,31 +68,25 @@ PseudoNormalForm NormalFormFinder<Logger>::getInitialNormalFormValues()
 template<LoggerType Logger>
 void NormalFormFinder<Logger>::setInitialValues()
 {
-    iterations = 1;
-
     a1_reminder = CJet(1, 2, degree+1);
     a2_reminder = CJet(1, 2, degree+1);
 }
 
 template<LoggerType Logger>
-void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm *normalForm)
-{
-    log<VerbosityLevel::Minimal>("--------- iteration: " + to_string(iterations) + " ---------");
-        
-    CJet FPhi(4, 4, f_reminder.degree() * normalForm->phi.degree());
-    substitutionPowerSeries(f_reminder, normalForm->phi, FPhi, false);
+void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm)
+{       
+    CJet FPhi(4, 4, f_reminder.degree() * normalForm.phi.degree());
+    substitutionPowerSeries(f_reminder, normalForm.phi, FPhi, false);
     
-    solveFirstEquation(normalForm->phi, FPhi);
-    checkFirstEquation(normalForm->phi, FPhi, normalForm->n);
+    solveFirstEquation(normalForm.phi, FPhi);
+    checkFirstEquation(normalForm.phi, FPhi, normalForm.n);
 
-    solveSecondEquation(normalForm->n, normalForm->b, FPhi);
-    checkSecondEquation(normalForm->n, normalForm->b, FPhi);
-
-    iterations++;
+    solveSecondEquation(normalForm.n, normalForm.b, FPhi);
+    checkSecondEquation(normalForm.n, normalForm.b, FPhi);
 }
 
 template<LoggerType Logger>
-typename NormalFormFinder<Logger>::PointType NormalFormFinder<Logger>::getPointType(const CMatrix &diagonalMatrix, Complex* lambda1, Complex* lambda2)
+typename NormalFormFinder<Logger>::PointType NormalFormFinder<Logger>::getPointType(const CMatrix &diagonalMatrix, Complex &lambda1, Complex &lambda2)
 {
     Complex eigenValues[4];
     for(int i = 0; i < 4; ++i) 
@@ -111,10 +104,10 @@ typename NormalFormFinder<Logger>::PointType NormalFormFinder<Logger>::getPointT
 
             if(eigenValues[left[0]] == -eigenValues[left[1]])
             {
-                *lambda1 = eigenValues[0];
-                *lambda2 = eigenValues[left[0]];
+                lambda1 = eigenValues[0];
+                lambda2 = eigenValues[left[0]];
 
-                if((lambda1->real() == 0 && lambda2->imag() == 0) || (lambda1->imag() == 0 && lambda2->real() == 0))
+                if((lambda1.real() == 0 && lambda2.imag() == 0) || (lambda1.imag() == 0 && lambda2.real() == 0))
                     return PointType::SaddleCenter;
 
                 return PointType::SaddleFocus;
@@ -131,7 +124,7 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
     CJet RH = projR(H, iterations+1);
 
     // set id as linear part
-    Psi = CJet(4, 4, degree);
+    Psi = CJet(4, 4, degree+1);
     for(int i = 0; i < 4; ++i)
     {
         Multiindex index({0, 0, 0, 0});

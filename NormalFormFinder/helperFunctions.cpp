@@ -4,27 +4,26 @@
 using namespace capd;
 using namespace std;
 
-void getLinearPartWithReminder(const CJet &taylor, CMatrix *linearPart, CJet *reminder)
+void getLinearPartWithReminder(const CJet &taylor, CMatrix &linearPart, CJet &reminder)
 {    
     if(taylor.dimension() != 4)
         throw new runtime_error("Taylor series dimension is invalid.");
 
-    *reminder = taylor;
-
+    reminder = taylor;
     Complex linearArr[4][4];
+    
     for(int i = 0; i < 4; ++i)
     {
-        int indexArr[] = {0, 0, 0, 0};
-        indexArr[i] = 1;
-        Multiindex index(4, indexArr);
+        Multiindex index(4);
+        index[i] = 1;
 
         for(int j = 0; j < 4; ++j)
             linearArr[i][j] = taylor(j, index);
 
-        (*reminder)(index) = {0, 0, 0, 0};
+        reminder(index) = {0, 0, 0, 0};
     }
 
-    *linearPart = CMatrix(linearArr);
+    linearPart = CMatrix(linearArr);
 }
 
 CJet getTaylorSeries(const CMap &function, int degree)
@@ -32,23 +31,6 @@ CJet getTaylorSeries(const CMap &function, int degree)
     CJet taylor(function.imageDimension(), function.dimension(), degree);
     function(CVector({0, 0, 0, 0}), taylor);
     return taylor;
-}
-
-CVector getEigenvalues(const DMatrix &matrix)
-{
-    auto dim = matrix.dimension();
-    if(dim.first != dim.second)
-        throw runtime_error("Matrix is not square.");
-
-    DVector eigenValuesR(dim.first), eigenValuesI(dim.first);
-    CVector eigenValues(dim.first);
-    alglib::computeEigenvalues(matrix, eigenValuesR, eigenValuesI);
-    for(int i = 0; i < 4; ++i)
-    {
-        eigenValues[i] = Complex(eigenValuesR[i], eigenValuesI[i]);
-    }
-
-    return eigenValues;
 }
 
 CJet projP(const CJet &poly, int upToDegree)
@@ -191,7 +173,10 @@ CJet polyDivision(const CJet &numerator, const CJet &denominator)
         do
         {
             for(int i = 0; i < 4; ++i)
+            {
+                if(result(i, index) == Complex(0, 0)) continue;
                 result(i, index) /= denominator(i, zero);
+            }
 
         }while(index.hasNext());
     }

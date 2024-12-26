@@ -31,10 +31,10 @@ int main()
     NormalFormFinder<Logger<VerbosityLevel::Diagnostic>> finder(2, f, x);
     PseudoNormalForm normalForm = finder.calculatePseudoNormalForm();
 
-    cout << "Phi:\n" << toString(normalForm.getPhi()) << endl;
-    cout << "N:\n" << toString(normalForm.getN()) << endl;
-    cout << "B:\n" << toString(normalForm.getB()) << endl;
-    checkPseudoNormalCondition(normalForm);
+    // cout << "Phi:\n" << toString(normalForm.getPhi()) << endl;
+    // cout << "N:\n" << toString(normalForm.getN()) << endl;
+    // cout << "B:\n" << toString(normalForm.getB()) << endl;
+    // checkPseudoNormalCondition(normalForm);
 
     return 0;
 }
