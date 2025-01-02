@@ -12,7 +12,8 @@ using namespace capd;
 using namespace std;
 
 template<LoggerType Logger>
-NormalFormFinder<Logger>::NormalFormFinder(int _degree, const CMap &_f, const CVector &fixedPoint) : degree(_degree), f(_f)
+NormalFormFinder<Logger>::NormalFormFinder(int _degree, const CMap &_f, const CVector &fixedPoint, const CMatrix &diagonalDerivative, const CMatrix &diagonalizationMatrix, const CMatrix diagonalizationMatrixInverse)
+    : degree(_degree), f(_f), p(fixedPoint), lambda(diagonalDerivative), J(diagonalizationMatrix), invJ(diagonalizationMatrixInverse)
 {
     if(f.dimension() != 4 || f.imageDimension() != 4)
         throw runtime_error("Dimensions not supported.");
@@ -21,14 +22,20 @@ NormalFormFinder<Logger>::NormalFormFinder(int _degree, const CMap &_f, const CV
 template<LoggerType Logger>
 PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
 {
-    taylorSeries = getTaylorSeries(f, degree+1);
+    CJet f_taylorSeries = getTaylorSeries(f, degree+1);
 
-    f_reminder = CJet(4, 4, degree+1);
-    getLinearPartWithReminder(taylorSeries, linearPart, f_reminder);
+    auto invJ_P = jetAddition(invJ, p); // F(X) = J f(p + J^-1 X)
+    F_taylorSeries = CJet(4, 4, invJ_P.degree() * f_taylorSeries.degree());
+    substitutionPowerSeries(f_taylorSeries, invJ_P, F_taylorSeries, false);
+    F_taylorSeries = J * F_taylorSeries;
 
-    PointType pointType = getPointType(linearPart, lambda1, lambda2);
+    F_reminder = fromToDegree(F_taylorSeries, 2, degree+1);
+
+    PointType pointType = getPointType(lambda, lambda1, lambda2);
     if(pointType == PointType::Unsupported)
-        throw new runtime_error("Type of equilibrium point not supported.");
+        throw runtime_error("Type of equilibrium point not supported.");
+    if(pointType == PointType::SaddleCenter)
+        throw runtime_error("Case not implemented yet.");
 
     PseudoNormalForm normalForm = getInitialNormalFormValues();
     setInitialValues();
@@ -44,22 +51,22 @@ PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
         log<VerbosityLevel::Minimal>("N:\n" + toString(normalForm.getN()));
         log<VerbosityLevel::Minimal>("B:\n" + toString(normalForm.getB()));
     }
-    
+
     return normalForm;
 }
 
 template<LoggerType Logger>
 PseudoNormalForm NormalFormFinder<Logger>::getInitialNormalFormValues()
 {
-    PseudoNormalForm normalForm(degree+1, taylorSeries);
+    PseudoNormalForm normalForm(degree+1, F_taylorSeries);
 
     for(int i = 0; i < 4; ++i)
     {
         int indexArr[4] = {0, 0, 0, 0};
         indexArr[i] = 1;
-
+        
         normalForm.phi(i, Multiindex(4, indexArr)) = 1; // Phi(1) = Id
-        normalForm.n(i, Multiindex(4, indexArr)) = linearPart(i+1, i+1); // N(1) = linear part (diagonal)
+        normalForm.n(i, Multiindex(4, indexArr)) = lambda(i+1, i+1); // N(1) = linear part (diagonal)
     }
 
     return normalForm;
@@ -75,8 +82,8 @@ void NormalFormFinder<Logger>::setInitialValues()
 template<LoggerType Logger>
 void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm)
 {       
-    CJet FPhi(4, 4, f_reminder.degree() * normalForm.phi.degree());
-    substitutionPowerSeries(f_reminder, normalForm.phi, FPhi, false);
+    CJet FPhi(4, 4, F_reminder.degree() * normalForm.phi.degree());
+    substitutionPowerSeries(F_reminder, normalForm.phi, FPhi, false);
     
     solveFirstEquation(normalForm.phi, FPhi);
     checkFirstEquation(normalForm.phi, FPhi, normalForm.n);
@@ -88,24 +95,20 @@ void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm)
 template<LoggerType Logger>
 typename NormalFormFinder<Logger>::PointType NormalFormFinder<Logger>::getPointType(const CMatrix &diagonalMatrix, Complex &lambda1, Complex &lambda2)
 {
-    Complex eigenValues[4];
-    for(int i = 0; i < 4; ++i) 
-        eigenValues[i] = diagonalMatrix[i][i];
-
-    // find pairs lambda, -lambda
+    // find pairs lambda, -lambda on the diagonal
     for(int i = 1; i < 4; ++i)
     {
-        if(eigenValues[0] == -eigenValues[i])
+        if(diagonalMatrix[0][0] == -diagonalMatrix[i][i])
         {
             std::vector<int> left;
             for(int j = 1; j < 4; ++j)
                 if(j != i)
                     left.push_back(j);
 
-            if(eigenValues[left[0]] == -eigenValues[left[1]])
+            if(diagonalMatrix[left[0]][left[0]] == -diagonalMatrix[left[1]][left[1]])
             {
-                lambda1 = eigenValues[0];
-                lambda2 = eigenValues[left[0]];
+                lambda1 = diagonalMatrix[0][0];
+                lambda2 = diagonalMatrix[left[0]][left[0]];
 
                 if((lambda1.real() == 0 && lambda2.imag() == 0) || (lambda1.imag() == 0 && lambda2.real() == 0))
                     return PointType::SaddleCenter;
@@ -165,7 +168,20 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
                     
                 Multiindex psiIndex({ind[0] + pq.first, ind[0], ind[1] + pq.second, ind[1]});
                 if(2*ind[0] + pq.first + 2*ind[1] + pq.second <= Psi.degree())
-                    Psi(psiIndex) += psi_pq(ind);
+                {
+                    for(int i = 0; i < 4; ++i)
+                    {
+                        // skip if in projection P // TODO: clean up
+                        if(
+                            i == 0 && pq.first == 1 && pq.second == 0 ||
+                            i == 1 && pq.first == -1 && pq.second == 0 ||
+                            i == 2 && pq.second == 1 && pq.first == 0 ||
+                            i == 3 && pq.second == -1 && pq.first == 0)
+                            continue;
+
+                        Psi(i, psiIndex) += psi_pq(i, ind);
+                    }
+                }
             }while(ind.hasNext());
         }
     }
@@ -174,7 +190,7 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
 template <LoggerType Logger>
 void NormalFormFinder<Logger>::checkFirstEquation(const CJet &Psi, const CJet &H, const CJet &N)
 {
-    auto LHS = fromToDegree(operatorL(projR(reminderPart(Psi)), N, linearPart), 0, iterations+1);
+    auto LHS = fromToDegree(operatorL(projR(reminderPart(Psi)), N, lambda), 0, iterations+1);
     auto RHS = fromToDegree(projR(H), 0, iterations+1);
     log<VerbosityLevel::Diagnostic>("first equation (LHS - RHS):");
     log<VerbosityLevel::Diagnostic>(toString(jetSubstraction(LHS, RHS)));

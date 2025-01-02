@@ -4,28 +4,6 @@
 using namespace capd;
 using namespace std;
 
-void getLinearPartWithReminder(const CJet &taylor, CMatrix &linearPart, CJet &reminder)
-{    
-    if(taylor.dimension() != 4)
-        throw new runtime_error("Taylor series dimension is invalid.");
-
-    reminder = taylor;
-    Complex linearArr[4][4];
-    
-    for(int i = 0; i < 4; ++i)
-    {
-        Multiindex index(4);
-        index[i] = 1;
-
-        for(int j = 0; j < 4; ++j)
-            linearArr[i][j] = taylor(j, index);
-
-        reminder(index) = {0, 0, 0, 0};
-    }
-
-    linearPart = CMatrix(linearArr);
-}
-
 CJet getTaylorSeries(const CMap &function, int degree)
 {
     CJet taylor(function.imageDimension(), function.dimension(), degree);
@@ -289,6 +267,30 @@ CJet jetAddition(const CJet &p1, const CJet &p2) // TODO: to be deleted
             }
         }while(index.hasNext());
     }
+    return result;
+}
+
+CJet jetAddition(const CMatrix &linearPart, const CVector &constant)
+{
+    auto dim = linearPart.dimension();
+    if(constant.dimension() != dim.first)
+        throw runtime_error("invalid dimensions of matrix and vector");
+
+    CJet result(dim.first, dim.second, /* debug */ 3);
+    
+    for(int i = 0; i < dim.first; ++i)
+    {
+        for(int j = 0; j < dim.second; ++j)
+        {
+            Multiindex index(dim.second);
+            index[j] = 1;
+
+            result(i, index) = linearPart[i][j];
+        }
+
+        result(i, Multiindex(dim.second)) = constant[i];
+    }
+
     return result;
 }
 

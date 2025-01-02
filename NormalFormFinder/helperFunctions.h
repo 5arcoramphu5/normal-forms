@@ -5,8 +5,6 @@
 #include <unordered_map>
 #include <vector>
 
-void getLinearPartWithReminder(const CJet &taylor, CMatrix &linearPart, CJet &reminder);
-
 CJet getTaylorSeries(const CMap &function, int degree);
 
 CJet projP(const CJet &poly, int upToDegree = -1);
@@ -37,6 +35,8 @@ CJet operatorL(const CJet Psi, const CJet &N, const CMatrix &lambda);
 CJet jetSubstraction(const CJet &p1, const CJet &p2);
 
 CJet jetAddition(const CJet &p1, const CJet &p2);
+
+CJet jetAddition(const CMatrix &linearPart, const CVector &constant);
 
 template<int N>
 class CJetMatrix : public std::array<std::array<CJet, N>, N>

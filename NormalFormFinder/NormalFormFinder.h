@@ -12,14 +12,24 @@ class NormalFormFinder
         enum PointType{Unsupported, SaddleFocus, SaddleCenter};
 
         const int degree; // number of iterations
-        CMap f; // input function
+
+        // system: X' = F(X) 
+        // F(X) = J f(p + J^-1 X)
+        // DF = lambda = J Df J^-1
+        // where:
+        // * f(p) = 0, it implies F(0) = 0
+        // * lambda is diagonal
+        const CMap f;
+        const CVector p;
+        const CMatrix J;
+        const CMatrix invJ;
+        const CMatrix lambda;
 
         // variables used in computations:
-        CJet taylorSeries;
-        CMatrix linearPart;
-        CJet f_reminder;
-
+        CJet F_taylorSeries;
+        CJet F_reminder;
         capd::Complex lambda1, lambda2;
+
         CJet a1_reminder;
         CJet a2_reminder;
 
@@ -47,7 +57,7 @@ class NormalFormFinder
         }
 
     public:
-        NormalFormFinder(int _degree, const CMap &_f, const CVector &fixedPoint);
+        NormalFormFinder(int _degree, const CMap &_f, const CVector &fixedPoint, const CMatrix &diagonalDerivative, const CMatrix &diagonalizationMatrix, const CMatrix diagonalizationMatrixInverse);
 
         PseudoNormalForm calculatePseudoNormalForm();
 };
