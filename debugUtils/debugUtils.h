@@ -8,6 +8,4 @@
 const std::string defaultVars[] = {"x1", "x2", "x3", "x4"};
 std::string toString(CJet polynomial, const std::string vars[] = defaultVars);
 
-void checkPseudoNormalCondition(const PseudoNormalForm &normalForm);
-
 #endif

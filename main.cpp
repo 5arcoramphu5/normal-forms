@@ -29,12 +29,12 @@ void diagonal_matrix_test()
     f.setParameter("a2", 5);
     f.setParameter("a3", 1i);
 
-    CVector p({1, 2, 3, 4});
+    CVector p({0, 0, 0, 0});
     CMatrix lambda({ {Complex(1, 1), 0, 0, 0}, {0, Complex(-1, -1), 0, 0}, {0, 0, Complex(1, -1), 0}, {0, 0, 0, Complex(-1, 1)} });
     CMatrix J({ {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1} });
     CMatrix invJ({ {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1} });
 
-    NormalFormFinder<Logger<VerbosityLevel::Diagnostic>> finder(METHOD_DEGREE, f, p, lambda, J, invJ);
+    NormalFormFinder<Logger<Diagnostic>> finder(METHOD_DEGREE, f, p, lambda, J, invJ);
     PseudoNormalForm normalForm = finder.calculatePseudoNormalForm();
 }
 
@@ -53,13 +53,27 @@ void henon_heiles_test()
     f.setParameter("a1", 2);
     f.setParameter("lambda", 1);
 
-    CMatrix lambda({ {Complex(0, -1), 0, 0, 0}, {0, Complex(0, -1), 0, 0}, {0, 0, Complex(0, 1), 0}, {0, 0, 0, Complex(0, 1)} });
-    CMatrix J({ {0, 0, Complex(0, -0.5), Complex(0.5, 0)}, {Complex(0, -0.5), Complex(0.5, 0), 0, 0}, {0, 0, Complex(0, 0.5), Complex(0.5, 0)}, {Complex(0, 0.5), Complex(0.5, 0), 0, 0} });
-    CMatrix invJ({ {0, Complex(0, 1), 0, Complex(0, -1)}, {0, 1, 0, 1}, {Complex(0, 1), 0, Complex(0, -1), 0}, {0, 1, 0, 1} });
+    CMatrix lambda({ 
+        {Complex(0, 1), 0, 0, 0}, 
+        {0, Complex(0, -1), 0, 0}, 
+        {0, 0, Complex(0, 1), 0}, 
+        {0, 0, 0, Complex(0, -1)} });
+
+    CMatrix J({ 
+        {Complex(0, 0.5), Complex(0.5, 0), 0, 0} ,
+        {Complex(0, -0.5), Complex(0.5, 0), 0, 0}, 
+        {0, 0, Complex(0, 0.5), Complex(0.5, 0)},
+        {0, 0, Complex(0, -0.5), Complex(0.5, 0)} });
+
+    CMatrix invJ({ 
+        {Complex(0, -1), Complex(0, 1), 0, 0}, 
+        {1, 1, 0, 0}, 
+        {0, 0, Complex(0, -1), Complex(0, 1)}, 
+        {0, 0, 1, 1} });
 
     CVector p({0, 0, 0, 0});
 
-    NormalFormFinder<Logger<VerbosityLevel::Diagnostic>> finder(METHOD_DEGREE, f, p, lambda, J, invJ);
+    NormalFormFinder<Logger<Diagnostic>> finder(METHOD_DEGREE, f, p, lambda, J, invJ);
     PseudoNormalForm normalForm = finder.calculatePseudoNormalForm();
 }
 

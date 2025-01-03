@@ -18,7 +18,10 @@ class NormalFormFinder
         // DF = lambda = J Df J^-1
         // where:
         // * f(p) = 0, it implies F(0) = 0
-        // * lambda is diagonal
+        // * lambda a diagonal matrix of form:  lambda1     0           0           0
+        //                                      0           -lambda1    0           0
+        //                                      0           0           lambda2     0
+        //                                      0           0           0           -lambda2
         const CMap f;
         const CVector p;
         const CMatrix J;
@@ -50,10 +53,12 @@ class NormalFormFinder
 
         void checkSecondEquation(const CJet &N, const CJet &B, const CJet &H);
 
+        void checkNormalFormEquality(const PseudoNormalForm &normalForm);
+
         template<VerbosityLevel MessageVerbosity, Streamable MessageType>
         static inline void log(MessageType message)
         { 
-            Logger::template print<MessageVerbosity>(message); 
+            Logger::template log<MessageVerbosity>(message); 
         }
 
     public:

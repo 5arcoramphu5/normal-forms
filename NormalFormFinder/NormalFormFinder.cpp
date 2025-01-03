@@ -24,32 +24,48 @@ PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
 {
     CJet f_taylorSeries = getTaylorSeries(f, degree+1);
 
-    auto invJ_P = jetAddition(invJ, p); // F(X) = J f(p + J^-1 X)
+    auto invJ_P = jetAddition(invJ, p, degree+1); // F(X) = J f(p + J^-1 X)
     F_taylorSeries = CJet(4, 4, invJ_P.degree() * f_taylorSeries.degree());
     substitutionPowerSeries(f_taylorSeries, invJ_P, F_taylorSeries, false);
     F_taylorSeries = J * F_taylorSeries;
 
+    log<Debug>("F:");
+    log<Debug>(toString(F_taylorSeries));
+
     F_reminder = fromToDegree(F_taylorSeries, 2, degree+1);
+    log<Debug>("F reminder:");
+    log<Debug>(toString(F_reminder));
 
     PointType pointType = getPointType(lambda, lambda1, lambda2);
     if(pointType == PointType::Unsupported)
         throw runtime_error("Type of equilibrium point not supported.");
-    if(pointType == PointType::SaddleCenter)
+    if(pointType == PointType::SaddleCenter) // TODO: to be deleted
         throw runtime_error("Case not implemented yet.");
+
+    log<Debug>("lambda: ");
+    log<Debug>(lambda);
+    log<Debug>("lambda1, lambda2: ");
+    log<Debug>(lambda1);
+    log<Debug>(lambda2);
+
+    log<Diagnostic>("Point type: " + to_string(pointType));
+    log<Diagnostic>("");
 
     PseudoNormalForm normalForm = getInitialNormalFormValues();
     setInitialValues();
 
     for(iterations = 1; iterations <= degree; ++iterations)
     {
-        log<VerbosityLevel::Minimal>("--------- iteration: " + to_string(iterations) + " ---------");
+        log<Minimal>("--------- iteration: " + to_string(iterations) + " ---------");
 
         nextIteration(normalForm);
         
-        log<VerbosityLevel::Diagnostic>("--------------------------------");
-        log<VerbosityLevel::Minimal>("Phi:\n" + toString(normalForm.getPhi()));
-        log<VerbosityLevel::Minimal>("N:\n" + toString(normalForm.getN()));
-        log<VerbosityLevel::Minimal>("B:\n" + toString(normalForm.getB()));
+        log<Diagnostic>("--------------------------------");
+        log<Minimal>("Phi:\n" + toString(normalForm.getPhi()));
+        log<Minimal>("N:\n" + toString(normalForm.getN()));
+        log<Minimal>("B:\n" + toString(normalForm.getB()));
+        log<Diagnostic>("a1:\n" + toString(a1_reminder));
+        log<Diagnostic>("a2:\n" + toString(a2_reminder));
     }
 
     return normalForm;
@@ -66,7 +82,7 @@ PseudoNormalForm NormalFormFinder<Logger>::getInitialNormalFormValues()
         indexArr[i] = 1;
         
         normalForm.phi(i, Multiindex(4, indexArr)) = 1; // Phi(1) = Id
-        normalForm.n(i, Multiindex(4, indexArr)) = lambda(i+1, i+1); // N(1) = linear part (diagonal)
+        normalForm.n(i, Multiindex(4, indexArr)) = lambda[i][i]; // N(1) = linear part (diagonal)
     }
 
     return normalForm;
@@ -82,7 +98,7 @@ void NormalFormFinder<Logger>::setInitialValues()
 template<LoggerType Logger>
 void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm)
 {       
-    CJet FPhi(4, 4, F_reminder.degree() * normalForm.phi.degree());
+    CJet FPhi(4, 4, normalForm.phi.degree());
     substitutionPowerSeries(F_reminder, normalForm.phi, FPhi, false);
     
     solveFirstEquation(normalForm.phi, FPhi);
@@ -126,20 +142,13 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
 {
     CJet RH = projR(H, iterations+1);
 
-    // set id as linear part
-    Psi = CJet(4, 4, degree+1);
-    for(int i = 0; i < 4; ++i)
-    {
-        Multiindex index({0, 0, 0, 0});
-        index[i] = 1;
-        Psi(i, index) = 1;
-    }
-
     auto pq_coeffs = pqCoefficients(RH, iterations+1);
 
-    for(auto [pq, h_pq] : pq_coeffs)
+    for(auto& [pq, h_pq] : pq_coeffs)
     {
-        auto _gamma = gamma(pq.first, pq.second, lambda1, lambda2);
+        auto& [p, q] = pq; 
+
+        auto _gamma = gamma(p, q, lambda1, lambda2);
         CJet denominator(4, 2, iterations+1); // gamma + pa_1 + qa_2
 
         for(int i = 0; i < 4; ++i)
@@ -149,7 +158,7 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
                 Multiindex ind({deg, 0});
                 do 
                 {
-                    denominator(i, ind) = Complex(pq.first, 0) * a1_reminder(0, ind) + Complex(pq.second, 0) * a2_reminder(0, ind);
+                    denominator(i, ind) = Complex(p, 0) * a1_reminder(0, ind) + Complex(q, 0) * a2_reminder(0, ind);
                 }while(ind.hasNext());
             }
 
@@ -158,12 +167,16 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
 
         CJet psi_pq = polyDivision(h_pq, denominator);
 
-        for(int deg = 0; deg <= psi_pq.degree(); ++deg) // fill Psi
-        {
+        // calculate Psi (only iterations+1 degree)
+        // 2*deg + p + q == iterations+1
+        if( (iterations+1 - p - q) % 2 == 1 ) continue;
+
+        int deg = (iterations+1 - p - q) / 2;
+
             Multiindex ind({deg, 0});
             do 
             {
-                if(ind[0] + pq.first < 0 || ind[1] + pq.second < 0)
+            if(ind[0] + p < 0 || ind[1] + q < 0)
                     continue; // TODO
                     
                 Multiindex psiIndex({ind[0] + pq.first, ind[0], ind[1] + pq.second, ind[1]});
@@ -171,19 +184,18 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
                 {
                     for(int i = 0; i < 4; ++i)
                     {
-                        // skip if in projection P // TODO: clean up
+                    // skip if in projection P
                         if(
-                            i == 0 && pq.first == 1 && pq.second == 0 ||
-                            i == 1 && pq.first == -1 && pq.second == 0 ||
-                            i == 2 && pq.second == 1 && pq.first == 0 ||
-                            i == 3 && pq.second == -1 && pq.first == 0)
+                        i == 0 && p == 1 && q == 0 ||
+                        i == 1 && p == -1 && q == 0 ||
+                        i == 2 && q == 1 && p == 0 ||
+                        i == 3 && q == -1 && p == 0)
                             continue;
 
                         Psi(i, psiIndex) += psi_pq(i, ind);
                     }
                 }
             }while(ind.hasNext());
-        }
     }
 }
 
@@ -199,6 +211,9 @@ void NormalFormFinder<Logger>::checkFirstEquation(const CJet &Psi, const CJet &H
 template<LoggerType Logger>
 void NormalFormFinder<Logger>::solveSecondEquation(CJet &N, CJet &B, const CJet &H)
 {
+    if(iterations%2 == 1)
+        return;
+
     // get h1, h2, h3, h4 - parts of P projection of H
     CJet h[4]; 
     for(int i = 0; i < 4; ++i)
@@ -236,9 +251,10 @@ void NormalFormFinder<Logger>::solveSecondEquation(CJet &N, CJet &B, const CJet 
         }while(index.hasNext());
     }
 
-    // calculate N and B
-    for(int deg = 0; deg <= iterations+1 && 2*deg + 1 <= N.degree(); ++deg)
-    {
+    // calculate N and B (only iterations+1 degree)
+    // 2*deg + 1 == iterations+1
+    int deg = iterations/2;
+
         Multiindex index({deg, 0});
         do 
         {
@@ -253,8 +269,6 @@ void NormalFormFinder<Logger>::solveSecondEquation(CJet &N, CJet &B, const CJet 
             B(3, Multiindex({index[0], index[0], index[1], index[1]+1})) = b2(0, index);
             
         }while(index.hasNext());
-    }
-
 }
 
 template <LoggerType Logger>
@@ -262,6 +276,16 @@ void NormalFormFinder<Logger>::checkSecondEquation(const CJet &N, const CJet &B,
 {
     auto LHS = fromToDegree(jetAddition(reminderPart(N), reminderPart(B)), 0, iterations+1);
     auto RHS = fromToDegree(projP(H), 0, iterations+1);
-    log<VerbosityLevel::Diagnostic>("second equation (LHS - RHS):");
-    log<VerbosityLevel::Diagnostic>(toString(jetSubstraction(LHS, RHS)));
+    log<Diagnostic>("second equation (LHS - RHS):");
+    log<Diagnostic>(toString(jetSubstraction(LHS, RHS)));
+}
+
+template <LoggerType Logger>
+void NormalFormFinder<Logger>::checkNormalFormEquality(const PseudoNormalForm &normalForm)
+{
+    log<Diagnostic>("Normal form condition LHS:");
+    auto LHS = jetAddition(multiply(D(normalForm.phi), normalForm.n), reminderPart(normalForm.b));
+    // log<Diagnostic>(toString(LHS));
+    // log<Diagnostic>("F: " + toString(F_taylorSeries));
+    // log<Diagnostic>("Phi: " + toString(normalForm.phi));
 }

@@ -11,7 +11,7 @@ CJet projP(const CJet &poly, int upToDegree = -1);
 
 CJet projR(const CJet &poly, int upToDegree = -1);
 
-std::vector<capd::Complex> gamma(int p, int q, capd::Complex lambda1, capd::Complex lambda2);
+CVector gamma(int p, int q, capd::Complex lambda1, capd::Complex lambda2);
 
 // required to create unordered_map with keys of type pair<int, int>
 struct hash_pair {
@@ -36,7 +36,7 @@ CJet jetSubstraction(const CJet &p1, const CJet &p2);
 
 CJet jetAddition(const CJet &p1, const CJet &p2);
 
-CJet jetAddition(const CMatrix &linearPart, const CVector &constant);
+CJet jetAddition(const CMatrix &linearPart, const CVector &constant, int degree);
 
 template<int N>
 class CJetMatrix : public std::array<std::array<CJet, N>, N>
@@ -53,6 +53,8 @@ class CJetMatrix : public std::array<std::array<CJet, N>, N>
 
     int degree() const { return matrixDegree; }
 };
+
+CJet multiply(const CJetMatrix<4> &jetMatrix, const CJet &jet);
 
 CJetMatrix<4> D(const CJet &F);
 

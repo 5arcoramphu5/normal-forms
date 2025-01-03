@@ -3,11 +3,11 @@
 
 #include <string>
 
-enum VerbosityLevel{None, Minimal, Diagnostic};
+enum VerbosityLevel{None, Minimal, Diagnostic, Debug, Error};
 
 template<typename T>
 concept LoggerType = requires (std::string message) {
-    { T::template print<VerbosityLevel::None>(message) };
+    { T::template log<VerbosityLevel::Minimal>(message) };
 };
 
 template <typename T>
@@ -20,11 +20,11 @@ class Logger
 {
     public:
     template<VerbosityLevel MessageVerbosity, Streamable MessageType>
-    static void print(MessageType message)
+    static void log(MessageType message)
     {
         static_assert(MessageVerbosity != VerbosityLevel::None);
 
-        if constexpr (Verbosity >= MessageVerbosity)
+        if constexpr (Verbosity >= MessageVerbosity || MessageVerbosity == Error)
             std::cout << message << std::endl;
     }
 };

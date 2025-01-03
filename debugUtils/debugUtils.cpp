@@ -3,6 +3,13 @@
 using namespace std;
 using namespace capd;
 
+// print in format compatible with Mathematica
+// ostream& operator<<(ostream& os, const Complex& c)
+// {
+//     os << "(" << c.real() << " + " << c.imag() << "I)";
+//     return os;
+// }
+
 string toString(CJet polynomial, const string vars[])
 {    
     const Multiindex zero(polynomial.dimension());
@@ -26,13 +33,13 @@ string toString(CJet polynomial, const string vars[])
                         if(coeff != Complex(1, 0))
                         {
                             if(coeff == Complex(-1, 0)) ss << "-";
-                            else ss << coeff;
+                            else ss << coeff << " ";
                         }
                     }
-                    else ss << coeff;
+                    else ss << coeff << " ";
                     
                     for(int j = 0; j < 4; ++j)
-                        if(index[j] > 0) ss << vars[j] <<(index[j] == 1 ? "" : "^"+to_string(index[j]));
+                        if(index[j] > 0) ss << vars[j] <<(index[j] == 1 ? "" : "^"+to_string(index[j])) << " ";
 
                     ss << " + ";
                 }
@@ -49,9 +56,4 @@ string toString(CJet polynomial, const string vars[])
     }
 
     return result;
-}
-
-void checkPseudoNormalCondition(const PseudoNormalForm &normalForm)
-{
-    // TODO
 }

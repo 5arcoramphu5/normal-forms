@@ -83,16 +83,14 @@ CJet projR(const CJet &poly, int upToDegree)
     return result;
 }
 
-vector<Complex> gamma(int p, int q, Complex lambda1, Complex lambda2)
+CVector gamma(int p, int q, Complex lambda1, Complex lambda2)
 {
-    vector<Complex> data(4);
-
-    data[0] = Complex(p-1, 0)*lambda1 + Complex(q, 0)*lambda2;
-    data[1] = Complex(p+1, 0)*lambda1 + Complex(q, 0)*lambda2;
-    data[2] = Complex(p, 0)*lambda1 + Complex(q-1, 0)*lambda2;
-    data[3] = Complex(p, 0)*lambda1 + Complex(q+1, 0)*lambda2;
-    
-    return data;
+    return CVector({
+        Complex(p-1, 0)*lambda1 + Complex(q, 0)*lambda2,
+        Complex(p+1, 0)*lambda1 + Complex(q, 0)*lambda2,
+        Complex(p, 0)*lambda1 + Complex(q-1, 0)*lambda2,
+        Complex(p, 0)*lambda1 + Complex(q+1, 0)*lambda2
+    });
 }
 
 bool isNonzero(CColumnVector columnVector)
@@ -168,12 +166,11 @@ CJet fromToDegree(const CJet &poly, int degreeFrom, int degreeTo)
     if(degreeTo > poly.degree())
         degreeTo = poly.degree();
     
-    const Multiindex zero(poly.dimension());
     CJet result(poly.imageDimension(), poly.dimension(), degreeTo);
 
     for(int deg = degreeFrom; deg <= degreeTo; ++deg)
     {
-        Multiindex index(zero);
+        Multiindex index(poly.dimension());
         index[0] = deg;
 
         do
@@ -270,13 +267,13 @@ CJet jetAddition(const CJet &p1, const CJet &p2) // TODO: to be deleted
     return result;
 }
 
-CJet jetAddition(const CMatrix &linearPart, const CVector &constant)
+CJet jetAddition(const CMatrix &linearPart, const CVector &constant, int degree) // to be deleted
 {
     auto dim = linearPart.dimension();
     if(constant.dimension() != dim.first)
         throw runtime_error("invalid dimensions of matrix and vector");
 
-    CJet result(dim.first, dim.second, /* debug */ 3);
+    CJet result(dim.first, dim.second, /* debug */ degree);
     
     for(int i = 0; i < dim.first; ++i)
     {
