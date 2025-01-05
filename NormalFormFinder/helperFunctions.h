@@ -26,7 +26,7 @@ struct hash_pair {
 
 std::unordered_map<std::pair<int, int>, CJet, hash_pair> pqCoefficients(const CJet &poly, int upToDegree);
 
-CJet polyDivision(const CJet &numerator, const CJet &denominator);
+CJet polyDivision(const CJet &numerator, const CJet &denominator, int degree);
 
 CJet fromToDegree(const CJet &poly, int degreeFrom, int degreeTo);
 

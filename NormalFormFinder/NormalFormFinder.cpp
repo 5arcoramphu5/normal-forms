@@ -148,6 +148,10 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
     {
         auto& [p, q] = pq; 
 
+        // calculate only iterations+1 degree
+        // 2*deg + p + q == iterations+1
+        if( (iterations+1 - p - q) % 2 == 1 ) continue;
+
         auto _gamma = gamma(p, q, lambda1, lambda2);
         CJet denominator(4, 2, iterations+1); // gamma + pa_1 + qa_2
 
@@ -165,37 +169,24 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
             denominator(i, Multiindex({0, 0})) += _gamma[i];
         }
 
-        CJet psi_pq = polyDivision(h_pq, denominator);
-
-        // calculate Psi (only iterations+1 degree)
-        // 2*deg + p + q == iterations+1
-        if( (iterations+1 - p - q) % 2 == 1 ) continue;
-
         int deg = (iterations+1 - p - q) / 2;
 
-            Multiindex ind({deg, 0});
-            do 
-            {
-            if(ind[0] + p < 0 || ind[1] + q < 0)
-                    continue; // TODO
-                    
-                Multiindex psiIndex({ind[0] + pq.first, ind[0], ind[1] + pq.second, ind[1]});
-                if(2*ind[0] + pq.first + 2*ind[1] + pq.second <= Psi.degree())
-                {
-                    for(int i = 0; i < 4; ++i)
-                    {
-                    // skip if in projection P
-                        if(
-                        i == 0 && p == 1 && q == 0 ||
-                        i == 1 && p == -1 && q == 0 ||
-                        i == 2 && q == 1 && p == 0 ||
-                        i == 3 && q == -1 && p == 0)
-                            continue;
 
-                        Psi(i, psiIndex) += psi_pq(i, ind);
-                    }
-                }
-            }while(ind.hasNext());
+        CJet psi_pq = polyDivision(h_pq, denominator, deg);
+
+        Multiindex ind({deg, 0});
+        do 
+        {
+            if(ind[0] + p < 0 || ind[1] + q < 0)
+                continue; // TODO
+                
+            Multiindex psiIndex({ind[0] + p, ind[0], ind[1] + q, ind[1]});
+            if(2*ind[0] + p + 2*ind[1] + q <= Psi.degree())
+            {
+                for(int i = 0; i < 4; ++i)
+                    Psi(i, psiIndex) += psi_pq(i, ind);
+            }
+        }while(ind.hasNext());
     }
 }
 
@@ -204,8 +195,8 @@ void NormalFormFinder<Logger>::checkFirstEquation(const CJet &Psi, const CJet &H
 {
     auto LHS = fromToDegree(operatorL(projR(reminderPart(Psi)), N, lambda), 0, iterations+1);
     auto RHS = fromToDegree(projR(H), 0, iterations+1);
-    log<VerbosityLevel::Diagnostic>("first equation (LHS - RHS):");
-    log<VerbosityLevel::Diagnostic>(toString(jetSubstraction(LHS, RHS)));
+    log<Diagnostic>("first equation (LHS - RHS):");
+    log<Diagnostic>(toString(jetSubstraction(LHS, RHS)));
 }
 
 template<LoggerType Logger>
@@ -246,7 +237,7 @@ void NormalFormFinder<Logger>::solveSecondEquation(CJet &N, CJet &B, const CJet 
             a1_reminder(0, index) = (h[0](0, index) - h[1](0, index)) / Complex(2, 0);
             a2_reminder(0, index) = (h[2](0, index) - h[3](0, index)) / Complex(2, 0);
             b1(0, index) = (h[0](0, index) + h[1](0, index)) / Complex(2, 0);
-            b2(0, index) = (h[2](0, index) - h[3](0, index)) / Complex(2, 0);
+            b2(0, index) = (h[2](0, index) + h[3](0, index)) / Complex(2, 0);
             
         }while(index.hasNext());
     }
@@ -255,20 +246,20 @@ void NormalFormFinder<Logger>::solveSecondEquation(CJet &N, CJet &B, const CJet 
     // 2*deg + 1 == iterations+1
     int deg = iterations/2;
 
-        Multiindex index({deg, 0});
-        do 
-        {
-            N(0, Multiindex({index[0]+1, index[0], index[1], index[1]})) = a1_reminder(0, index);
-            N(1, Multiindex({index[0], index[0]+1, index[1], index[1]})) = -a1_reminder(0, index);
-            N(2, Multiindex({index[0], index[0], index[1]+1, index[1]})) = a2_reminder(0, index);
-            N(3, Multiindex({index[0], index[0], index[1], index[1]+1})) = -a2_reminder(0, index);
+    Multiindex index({deg, 0});
+    do 
+    {
+        N(0, Multiindex({index[0]+1, index[0], index[1], index[1]})) = a1_reminder(0, index);
+        N(1, Multiindex({index[0], index[0]+1, index[1], index[1]})) = -a1_reminder(0, index);
+        N(2, Multiindex({index[0], index[0], index[1]+1, index[1]})) = a2_reminder(0, index);
+        N(3, Multiindex({index[0], index[0], index[1], index[1]+1})) = -a2_reminder(0, index);
 
-            B(0, Multiindex({index[0]+1, index[0], index[1], index[1]})) = b1(0, index);
-            B(1, Multiindex({index[0], index[0]+1, index[1], index[1]})) = b1(0, index);
-            B(2, Multiindex({index[0], index[0], index[1]+1, index[1]})) = b2(0, index);
-            B(3, Multiindex({index[0], index[0], index[1], index[1]+1})) = b2(0, index);
-            
-        }while(index.hasNext());
+        B(0, Multiindex({index[0]+1, index[0], index[1], index[1]})) = b1(0, index);
+        B(1, Multiindex({index[0], index[0]+1, index[1], index[1]})) = b1(0, index);
+        B(2, Multiindex({index[0], index[0], index[1]+1, index[1]})) = b2(0, index);
+        B(3, Multiindex({index[0], index[0], index[1], index[1]+1})) = b2(0, index);
+        
+    }while(index.hasNext());
 }
 
 template <LoggerType Logger>

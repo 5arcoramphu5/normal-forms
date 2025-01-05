@@ -57,19 +57,19 @@ CJet projR(const CJet &poly, int upToDegree)
                 switch(i)
                 {
                     case 0:
-                        if(index[0]+1 == index[1] && index[2] == index[3])
+                        if(index[0]-1 == index[1] && index[2] == index[3])
                             skip = true;
                         break;
                     case 1:
-                        if(index[0] == index[1]+1 && index[2] == index[3])
+                        if(index[0] == index[1]-1 && index[2] == index[3])
                             skip = true;
                         break;
                     case 2:
-                        if(index[0] == index[1] && index[2]+1 == index[3])
+                        if(index[0] == index[1] && index[2]-1 == index[3])
                             skip = true;
                         break;
                     case 3:
-                        if(index[0] == index[1] && index[2] == index[3]+1)
+                        if(index[0] == index[1] && index[2] == index[3]-1)
                             skip = true;
                         break;
                 }
@@ -136,16 +136,14 @@ std::unordered_map<std::pair<int,int>,CJet,hash_pair> pqCoefficients(const CJet 
     return coefficients;
 }
 
-// division of two polynomials C^2 -> C^4
-CJet polyDivision(const CJet &numerator, const CJet &denominator)
+// division of two polynomials C^2 -> C^4, only passed degree coefficients
+CJet polyDivision(const CJet &numerator, const CJet &denominator, int degree)
 {
     // TODO: implement proper division
     CJet result(numerator);
     Multiindex zero({0, 0});
 
-    for(int deg = 0; deg <= numerator.degree(); ++deg)
-    {
-        Multiindex index({deg, 0});
+    Multiindex index({degree, 0});
         do
         {
             for(int i = 0; i < 4; ++i)
@@ -155,7 +153,7 @@ CJet polyDivision(const CJet &numerator, const CJet &denominator)
             }
 
         }while(index.hasNext());
-    }
+    
     return result;
 }
 
