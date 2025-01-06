@@ -18,18 +18,18 @@ CJet projP(const CJet &poly, int upToDegree)
 
     for(int i = 0; i < maxDeg; ++i)
         for(int j = 0; 2*i+2*j < maxDeg ; ++j)
-            {
-                Multiindex i1({i+1, i, j, j});
-                result(i1)[0] = poly(0, i1); // P_1
+        {   
+            Multiindex i1({i+1, i, j, j});
+            result(i1)[0] = poly(0, i1); // P_1
 
-                Multiindex i2({i, i+1, j, j});
-                result(i2)[1] = poly(1, i2); // P_2
+            Multiindex i2({i, i+1, j, j});
+            result(i2)[1] = poly(1, i2); // P_2
 
-                Multiindex i3({i, i, j+1, j});
-                result(i3)[2] = poly(2, i3); // P_3
+            Multiindex i3({i, i, j+1, j});
+            result(i3)[2] = poly(2, i3); // P_3
 
-                Multiindex i4({i, i, j, j+1});
-                result(i4)[3] = poly(3, i4); // P_4
+            Multiindex i4({i, i, j, j+1});
+            result(i4)[3] = poly(3, i4); // P_4
         }
 
     return result;
@@ -54,7 +54,7 @@ CJet projR(const CJet &poly, int upToDegree)
                     (i == 3 && index[0] == index[1] && index[2] == index[3]-1) )
                     continue;
                     
-                    result(index)[i] = poly(i, index);
+                result(index)[i] = poly(i, index);
             }
         }while(index.hasNext());
     }
@@ -123,15 +123,15 @@ CJet polyDivision(const CJet &numerator, const CJet &denominator, int degree)
     Multiindex zero({0, 0});
 
     Multiindex index({degree, 0});
-        do
+    do
+    {
+        for(int i = 0; i < 4; ++i)
         {
-            for(int i = 0; i < 4; ++i)
-            {
-                if(result(i, index) == Complex(0, 0)) continue;
-                result(i, index) /= denominator(i, zero);
-            }
+            if(result(i, index) == Complex(0, 0)) continue;
+            result(i, index) /= denominator(i, zero);
+        }
 
-        }while(index.hasNext());
+    }while(index.hasNext());
     
     return result;
 }

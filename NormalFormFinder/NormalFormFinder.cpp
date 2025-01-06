@@ -106,6 +106,8 @@ void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm)
 
     solveSecondEquation(normalForm.n, normalForm.b, FPhi);
     checkSecondEquation(normalForm.n, normalForm.b, FPhi);
+
+    // checkNormalFormEquality(normalForm);
 }
 
 template<LoggerType Logger>
@@ -178,7 +180,7 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
         do 
         {
             if(ind[0] + p < 0 || ind[1] + q < 0)
-                continue; // TODO
+                continue;
                 
             Multiindex psiIndex({ind[0] + p, ind[0], ind[1] + q, ind[1]});
             
@@ -215,10 +217,10 @@ void NormalFormFinder<Logger>::solveSecondEquation(CJet &N, CJet &B, const CJet 
         for(int j = 0; 2*i+2*j < iterations+1; ++j)
         {   
             Multiindex index({i, j});
-                h[0](0, index) = H(0, Multiindex({i+1, i, j, j}));
-                h[1](0, index) = H(1, Multiindex({i, i+1, j, j}));
-                h[2](0, index) = H(2, Multiindex({i, i, j+1, j}));
-                h[3](0, index) = H(3, Multiindex({i, i, j, j+1}));
+            h[0](0, index) = H(0, Multiindex({i+1, i, j, j}));
+            h[1](0, index) = H(1, Multiindex({i, i+1, j, j}));
+            h[2](0, index) = H(2, Multiindex({i, i, j+1, j}));
+            h[3](0, index) = H(3, Multiindex({i, i, j, j+1}));
         }
 
     // calculate a1, a2, b1, b2
@@ -271,7 +273,9 @@ void NormalFormFinder<Logger>::checkNormalFormEquality(const PseudoNormalForm &n
 {
     log<Diagnostic>("Normal form condition LHS:");
     auto LHS = jetAddition(multiply(D(normalForm.phi), normalForm.n), reminderPart(normalForm.b));
-    // log<Diagnostic>(toString(LHS));
-    // log<Diagnostic>("F: " + toString(F_taylorSeries));
-    // log<Diagnostic>("Phi: " + toString(normalForm.phi));
+
+    CJet RHS(4, 4, normalForm.phi.degree());
+    jetComposition(F_reminder, normalForm.phi, RHS);
+
+    log<Diagnostic>(toString(jetSubstraction(LHS, RHS)));
 }
