@@ -61,4 +61,6 @@ CJetMatrix<4> D(const CJet &F);
 CJet inline reminderPart(const CJet &poly)
 { return fromToDegree(poly, 2, poly.degree()); }
 
+void jetComposition(const CJet &first, const CJet &second, CJet& result);
+
 #endif

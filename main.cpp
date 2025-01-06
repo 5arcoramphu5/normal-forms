@@ -8,7 +8,7 @@ using namespace capd;
 using capd::autodiff::Node;
 
 #define MAX_DERIVATIVE 10
-#define METHOD_DEGREE 2
+#define METHOD_DEGREE 5
 
 void diagonal_matrix_test()
 {

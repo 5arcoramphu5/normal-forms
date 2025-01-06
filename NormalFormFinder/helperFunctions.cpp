@@ -18,24 +18,18 @@ CJet projP(const CJet &poly, int upToDegree)
 
     for(int i = 0; i < maxDeg; ++i)
         for(int j = 0; 2*i+2*j < maxDeg ; ++j)
-        {   
-            if(j > 0)
             {
                 Multiindex i1({i+1, i, j, j});
                 result(i1)[0] = poly(0, i1); // P_1
 
                 Multiindex i2({i, i+1, j, j});
                 result(i2)[1] = poly(1, i2); // P_2
-            }
 
-            if(i > 0)
-            {
                 Multiindex i3({i, i, j+1, j});
                 result(i3)[2] = poly(2, i3); // P_3
 
                 Multiindex i4({i, i, j, j+1});
                 result(i4)[3] = poly(3, i4); // P_4
-            }
         }
 
     return result;
@@ -53,28 +47,13 @@ CJet projR(const CJet &poly, int upToDegree)
         {
             for(int i = 0; i < 4; ++i)
             {
-                bool skip = false;
-                switch(i)
-                {
-                    case 0:
-                        if(index[0]-1 == index[1] && index[2] == index[3])
-                            skip = true;
-                        break;
-                    case 1:
-                        if(index[0] == index[1]-1 && index[2] == index[3])
-                            skip = true;
-                        break;
-                    case 2:
-                        if(index[0] == index[1] && index[2]-1 == index[3])
-                            skip = true;
-                        break;
-                    case 3:
-                        if(index[0] == index[1] && index[2] == index[3]-1)
-                            skip = true;
-                        break;
-                }
-
-                if(!skip)
+                if(
+                    (i == 0 && index[0]-1 == index[1] && index[2] == index[3]) ||
+                    (i == 1 && index[0] == index[1]-1 && index[2] == index[3]) ||
+                    (i == 2 && index[0] == index[1] && index[2]-1 == index[3]) ||
+                    (i == 3 && index[0] == index[1] && index[2] == index[3]-1) )
+                    continue;
+                    
                     result(index)[i] = poly(i, index);
             }
         }while(index.hasNext());
@@ -271,7 +250,7 @@ CJet jetAddition(const CMatrix &linearPart, const CVector &constant, int degree)
     if(constant.dimension() != dim.first)
         throw runtime_error("invalid dimensions of matrix and vector");
 
-    CJet result(dim.first, dim.second, /* debug */ degree);
+    CJet result(dim.first, dim.second, 1);
     
     for(int i = 0; i < dim.first; ++i)
     {
@@ -317,4 +296,84 @@ CJetMatrix<4> D(const CJet &F)
         }
     
     return result;
+}
+
+Complex compositionProduct(const CJet &second, const Multiindex& mi, const Multipointer& a, int p, int k)
+{
+    Complex result = 0;
+    const auto is = Multipointer::generateList(p,k);
+
+    auto e = is.end();
+    for(auto b = is.begin(); b != e; ++b)
+    {
+        auto bt = b->begin(), et = b->end();
+        auto ib = mi.begin();
+
+        Multipointer delta = a.subMultipointer(*bt);
+
+        if(delta.dimension() > second.degree())
+            continue;
+
+        Complex temp = second(*ib,delta) * Complex(delta.factorial(), 0);
+        ++bt;
+        ++ib;
+
+        for( ; bt != et; ++bt)
+        {
+            Multipointer delta = a.subMultipointer(*bt);
+
+            if(delta.dimension() > second.degree())
+            {
+                temp = 0;
+                break;
+            }
+
+            temp *= second(*ib,delta) * Complex(delta.factorial(), 0);
+            ++ib;
+        }
+
+        result += temp;
+    }
+
+    return result;
+}
+
+void composition(const CJet &first, const CJet &second, CJet &result, const Multipointer& a)
+{
+    typename Multiindex::IndicesSet listIndices;
+    Multiindex::generateList(result.dimension(), result.degree(), listIndices);
+
+    int p = a.module();
+
+    result(a).clear();
+    int minK = 1;
+    for(int k = minK; k <= p; ++k)
+    {
+        auto e = listIndices[k-1].end();
+        for(auto b = listIndices[k-1].begin(); b != e; ++b)
+        {
+            Multipointer mp(b->dimension(),b->begin());
+
+            sort(mp.begin(),mp.end());
+            auto product = compositionProduct(second, *b, a, p, k);
+            result(a) += first(mp) * product *  Complex(mp.factorial(), 0);
+        }
+    }
+
+    result(a) /= Complex(a.factorial(), 0);
+}
+
+// modified version of substitutionPowerSeries(...), should work for second.degree() < first.degree()
+void jetComposition(const CJet &first, const CJet &second, CJet& result)
+{
+    for(unsigned i=1;i<=first.degree();++i)
+    {
+        Multipointer a = first.first(i);
+        do
+        {
+            composition(first, second, result, a);
+        }
+        while(first.hasNext(a));
+    }
+    result() = first();
 }

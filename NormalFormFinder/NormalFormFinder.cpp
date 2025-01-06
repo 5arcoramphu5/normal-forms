@@ -26,7 +26,7 @@ PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
 
     auto invJ_P = jetAddition(invJ, p, degree+1); // F(X) = J f(p + J^-1 X)
     F_taylorSeries = CJet(4, 4, invJ_P.degree() * f_taylorSeries.degree());
-    substitutionPowerSeries(f_taylorSeries, invJ_P, F_taylorSeries, false);
+    jetComposition(f_taylorSeries, invJ_P, F_taylorSeries);
     F_taylorSeries = J * F_taylorSeries;
 
     log<Debug>("F:");
@@ -99,7 +99,7 @@ template<LoggerType Logger>
 void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm)
 {       
     CJet FPhi(4, 4, normalForm.phi.degree());
-    substitutionPowerSeries(F_reminder, normalForm.phi, FPhi, false);
+    jetComposition(F_reminder, normalForm.phi, FPhi);
     
     solveFirstEquation(normalForm.phi, FPhi);
     checkFirstEquation(normalForm.phi, FPhi, normalForm.n);
@@ -155,6 +155,7 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
         auto _gamma = gamma(p, q, lambda1, lambda2);
         CJet denominator(4, 2, iterations+1); // gamma + pa_1 + qa_2
 
+        Multiindex zero({0, 0});
         for(int i = 0; i < 4; ++i)
         {
             for(int deg = 0; deg <= denominator.degree(); ++deg)
@@ -166,11 +167,10 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
                 }while(ind.hasNext());
             }
 
-            denominator(i, Multiindex({0, 0})) += _gamma[i];
+            denominator(i, zero) += _gamma[i];
         }
 
         int deg = (iterations+1 - p - q) / 2;
-
 
         CJet psi_pq = polyDivision(h_pq, denominator, deg);
 
@@ -181,9 +181,10 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
                 continue; // TODO
                 
             Multiindex psiIndex({ind[0] + p, ind[0], ind[1] + q, ind[1]});
-            if(2*ind[0] + p + 2*ind[1] + q <= Psi.degree())
+            
+            for(int i = 0; i < 4; ++i)
             {
-                for(int i = 0; i < 4; ++i)
+                if(denominator(i ,zero) != Complex(0, 0))
                     Psi(i, psiIndex) += psi_pq(i, ind);
             }
         }while(ind.hasNext());
@@ -214,16 +215,10 @@ void NormalFormFinder<Logger>::solveSecondEquation(CJet &N, CJet &B, const CJet 
         for(int j = 0; 2*i+2*j < iterations+1; ++j)
         {   
             Multiindex index({i, j});
-            if(j > 0)
-            {
                 h[0](0, index) = H(0, Multiindex({i+1, i, j, j}));
                 h[1](0, index) = H(1, Multiindex({i, i+1, j, j}));
-            }
-            if(i > 0)
-            {
                 h[2](0, index) = H(2, Multiindex({i, i, j+1, j}));
                 h[3](0, index) = H(3, Multiindex({i, i, j, j+1}));
-            }
         }
 
     // calculate a1, a2, b1, b2
