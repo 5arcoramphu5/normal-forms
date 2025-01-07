@@ -5,7 +5,8 @@
 using namespace std;
 using namespace capd;
 
-void multiplyAndAdd(Polynomial &accumulator, int accumulatorIndex, const Polynomial &p1, int p1Index, const Polynomial &p2, int p2Index)
+template<ArithmeticType Coeff>
+void multiplyAndAdd(Polynomial<Coeff> &accumulator, int accumulatorIndex, const Polynomial<Coeff> &p1, int p1Index, const Polynomial<Coeff> &p2, int p2Index)
 {
     for(int deg1 = 0; deg1 <= p1.degree(); ++deg1)
     {
@@ -25,14 +26,15 @@ void multiplyAndAdd(Polynomial &accumulator, int accumulatorIndex, const Polynom
     }
 }
 
-Polynomial operator*(const PolynomialMatrix<4> &jetMatrix, const Polynomial &jet)
+template<ArithmeticType Coeff, int N>
+Polynomial<Coeff> operator*(const PolynomialMatrix<Coeff, N> &jetMatrix, const Polynomial<Coeff> &jet)
 {
-    if(jet.dimension() != 4) throw runtime_error("invalid dimension for polynomial matrix multiplication.");
+    if(jet.dimension() != N) throw runtime_error("invalid dimension for polynomial matrix multiplication.");
 
-    Polynomial result(4, 4, jetMatrix.degree() + jet.degree());
+    Polynomial<Coeff> result(N, N, jetMatrix.degree() + jet.degree());
 
-    for(int row = 0; row < 4; ++row)
-        for(int i = 0; i < 4; ++i)
+    for(int row = 0; row < N; ++row)
+        for(int i = 0; i < N; ++i)
             multiplyAndAdd(result, row, jetMatrix[row][i], 0, jet, i);
 
     return result;

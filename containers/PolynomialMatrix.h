@@ -3,8 +3,8 @@
 
 #include "Polynomial.h"
 
-template<int N>
-class PolynomialMatrix : public std::array<std::array<Polynomial, N>, N>
+template<ArithmeticType Coeff, int N>
+class PolynomialMatrix : public std::array<std::array<Polynomial<Coeff>, N>, N>
 {
     int matrixDegree;
 
@@ -13,12 +13,13 @@ class PolynomialMatrix : public std::array<std::array<Polynomial, N>, N>
     { 
         for(auto &array : *this)
             for(auto &jet : array)
-                jet = Polynomial(1, N, degree);
+                jet = Polynomial<Coeff>(1, N, degree);
     }
 
     int degree() const { return matrixDegree; }
 };
 
-Polynomial operator*(const PolynomialMatrix<4> &jetMatrix, const Polynomial &jet);
+template<ArithmeticType Coeff, int N>
+Polynomial<Coeff> operator*(const PolynomialMatrix<Coeff, N> &jetMatrix, const Polynomial<Coeff> &jet);
 
 #endif

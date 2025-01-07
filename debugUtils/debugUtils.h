@@ -4,8 +4,11 @@
 #include "capd/capdlib.h"
 #include "../typedefs.h"
 #include "../NormalFormFinder/PseudoNormalForm.h"
+#include "../containers/Polynomial.h"
 
 const std::string defaultVars[] = {"x1", "x2", "x3", "x4"};
-std::string toString(CJet polynomial, const std::string vars[] = defaultVars);
+
+template<ArithmeticType Coeff>
+std::string toString(Polynomial<Coeff> polynomial, const std::string vars[] = defaultVars);
 
 #endif

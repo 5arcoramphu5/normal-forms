@@ -7,25 +7,25 @@
 class PseudoNormalForm
 {
     private:
-        PseudoNormalForm(int degree, Polynomial fTaylorSeries) : F(fTaylorSeries), phi(4, 4, degree), n(4, 4, degree), b(4, 4, degree) {}
+        PseudoNormalForm(int degree, Polynomial<capd::Complex> fTaylorSeries) : F(fTaylorSeries), phi(4, 4, degree), n(4, 4, degree), b(4, 4, degree) {}
 
-        Polynomial phi;   
-        Polynomial n;
-        Polynomial b; 
+        Polynomial<capd::Complex> phi;   
+        Polynomial<capd::Complex> n;
+        Polynomial<capd::Complex> b; 
 
     public:
-        const Polynomial F; // Taylor series expansions of the input function
+        const Polynomial<capd::Complex> F; // Taylor series expansions of the input function
 
         // transformation
-        Polynomial getPhi() const
+        Polynomial<capd::Complex> getPhi() const
         { return phi; }
         
         // normal form
-        Polynomial getN() const
+        Polynomial<capd::Complex> getN() const
         { return n; }
 
         // reminder term
-        Polynomial getB() const
+        Polynomial<capd::Complex> getB() const
         { return b; }
 
     template<LoggerType Logger>

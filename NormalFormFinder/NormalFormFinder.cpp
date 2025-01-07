@@ -1,7 +1,8 @@
 #include "NormalFormFinder.h"
 #include "PseudoNormalForm.h"
 #include "helperFunctions.h"
-#include "../debugUtils/debugUtils.h"
+#include "../debugUtils/debugUtils.cpp"
+#include "../containers/Polynomial.h"
 
 #include "capd/capdlib.h"
 #include "capd/matrixAlgorithms/capd2alglib.h"
@@ -22,10 +23,10 @@ NormalFormFinder<Logger>::NormalFormFinder(int _degree, const CMap &_f, const CV
 template<LoggerType Logger>
 PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
 {
-    Polynomial f_taylorSeries = getTaylorSeries(f, degree+1);
+    Polynomial<Complex> f_taylorSeries = getTaylorSeries(f, degree+1);
     
     auto invJ_P = toPolynomial(invJ, p, degree+1); // F(X) = J f(p + J^-1 X)
-    F_taylorSeries = Polynomial(4, 4, invJ_P.degree() * f_taylorSeries.degree());
+    F_taylorSeries = Polynomial<Complex>(4, 4, invJ_P.degree() * f_taylorSeries.degree());
     polynomialComposition(f_taylorSeries, invJ_P, F_taylorSeries);
     F_taylorSeries = J * F_taylorSeries;
 
@@ -91,14 +92,14 @@ PseudoNormalForm NormalFormFinder<Logger>::getInitialNormalFormValues()
 template<LoggerType Logger>
 void NormalFormFinder<Logger>::setInitialValues()
 {
-    a1_reminder = Polynomial(1, 2, degree+1);
-    a2_reminder = Polynomial(1, 2, degree+1);
+    a1_reminder = Polynomial<Complex>(1, 2, degree+1);
+    a2_reminder = Polynomial<Complex>(1, 2, degree+1);
 }
 
 template<LoggerType Logger>
 void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm)
 {       
-    Polynomial FPhi(4, 4, normalForm.phi.degree());
+    Polynomial<Complex> FPhi(4, 4, normalForm.phi.degree());
     polynomialComposition(F_reminder, normalForm.phi, FPhi);
     
     solveFirstEquation(normalForm.phi, FPhi);
@@ -140,9 +141,9 @@ typename NormalFormFinder<Logger>::PointType NormalFormFinder<Logger>::getPointT
 }
 
 template<LoggerType Logger>
-void NormalFormFinder<Logger>::solveFirstEquation(Polynomial &Psi, const Polynomial &H)
+void NormalFormFinder<Logger>::solveFirstEquation(Polynomial<Complex> &Psi, const Polynomial<Complex> &H)
 {
-    Polynomial RH = projR(H, iterations+1);
+    Polynomial<Complex> RH = projR(H, iterations+1);
 
     auto pq_coeffs = pqCoefficients(RH, iterations+1);
 
@@ -155,7 +156,7 @@ void NormalFormFinder<Logger>::solveFirstEquation(Polynomial &Psi, const Polynom
         if( (iterations+1 - p - q) % 2 == 1 ) continue;
 
         auto _gamma = gamma(p, q, lambda1, lambda2);
-        Polynomial denominator(4, 2, iterations+1); // gamma + pa_1 + qa_2
+        Polynomial<Complex> denominator(4, 2, iterations+1); // gamma + pa_1 + qa_2
 
         Multiindex zero({0, 0});
         for(int i = 0; i < 4; ++i)
@@ -174,7 +175,7 @@ void NormalFormFinder<Logger>::solveFirstEquation(Polynomial &Psi, const Polynom
 
         int deg = (iterations+1 - p - q) / 2;
 
-        Polynomial psi_pq = polynomialDivision(h_pq, denominator, deg);
+        Polynomial<Complex> psi_pq = polynomialDivision(h_pq, denominator, deg);
 
         Multiindex ind({deg, 0});
         do 
@@ -194,7 +195,7 @@ void NormalFormFinder<Logger>::solveFirstEquation(Polynomial &Psi, const Polynom
 }
 
 template <LoggerType Logger>
-void NormalFormFinder<Logger>::checkFirstEquation(const Polynomial &Psi, const Polynomial &H, const Polynomial &N)
+void NormalFormFinder<Logger>::checkFirstEquation(const Polynomial<Complex> &Psi, const Polynomial<Complex> &H, const Polynomial<Complex> &N)
 {
     auto LHS = operatorL(projR(Psi.reminderPart()), N, lambda).fromToDegree(0, iterations+1);
     auto RHS = projR(H).fromToDegree(0, iterations+1);
@@ -203,15 +204,15 @@ void NormalFormFinder<Logger>::checkFirstEquation(const Polynomial &Psi, const P
 }
 
 template<LoggerType Logger>
-void NormalFormFinder<Logger>::solveSecondEquation(Polynomial &N, Polynomial &B, const Polynomial &H)
+void NormalFormFinder<Logger>::solveSecondEquation(Polynomial<Complex> &N, Polynomial<Complex> &B, const Polynomial<Complex> &H)
 {
     if(iterations%2 == 1)
         return;
 
     // get h1, h2, h3, h4 - parts of P projection of H
-    Polynomial h[4]; 
+    Polynomial<Complex> h[4]; 
     for(int i = 0; i < 4; ++i)
-        h[i] = Polynomial(1, 2, iterations+1);
+        h[i] = Polynomial<Complex>(1, 2, iterations+1);
 
     for(int i = 0; i < iterations+1; ++i)
         for(int j = 0; 2*i+2*j < iterations+1; ++j)
@@ -224,7 +225,7 @@ void NormalFormFinder<Logger>::solveSecondEquation(Polynomial &N, Polynomial &B,
         }
 
     // calculate a1, a2, b1, b2
-    Polynomial b1(1, 2, iterations+1), b2(1, 2, iterations+1);
+    Polynomial<Complex> b1(1, 2, iterations+1), b2(1, 2, iterations+1);
 
     for(int deg = 0; deg <= iterations+1; ++deg)
     {
@@ -260,7 +261,7 @@ void NormalFormFinder<Logger>::solveSecondEquation(Polynomial &N, Polynomial &B,
 }
 
 template <LoggerType Logger>
-void NormalFormFinder<Logger>::checkSecondEquation(const Polynomial &N, const Polynomial &B, const Polynomial &H)
+void NormalFormFinder<Logger>::checkSecondEquation(const Polynomial<Complex> &N, const Polynomial<Complex> &B, const Polynomial<Complex> &H)
 {
     auto LHS = (N.reminderPart() + B.reminderPart()).fromToDegree(0, iterations+1);
     auto RHS = projP(H).fromToDegree(0, iterations+1);
@@ -274,7 +275,7 @@ void NormalFormFinder<Logger>::checkNormalFormEquality(const PseudoNormalForm &n
     log<Diagnostic>("Normal form condition LHS:");
     auto LHS = D(normalForm.phi) * normalForm.n + normalForm.b.reminderPart();
 
-    Polynomial RHS(4, 4, normalForm.phi.degree());
+    Polynomial<Complex> RHS(4, 4, normalForm.phi.degree());
     polynomialComposition(F_reminder, normalForm.phi, RHS);
 
     log<Diagnostic>(toString(LHS - RHS));

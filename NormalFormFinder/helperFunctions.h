@@ -4,32 +4,20 @@
 #include "../typedefs.h"
 #include "../containers/Polynomial.h"
 #include "../containers/PolynomialMatrix.h"
+#include "../containers/PairMap.h"
 
-#include <unordered_map>
+Polynomial<capd::Complex> getTaylorSeries(const CMap &function, int degree);
 
-Polynomial getTaylorSeries(const CMap &function, int degree);
+Polynomial<capd::Complex> projP(const Polynomial<capd::Complex> &poly, int upToDegree = -1);
 
-Polynomial projP(const Polynomial &poly, int upToDegree = -1);
-
-Polynomial projR(const Polynomial &poly, int upToDegree = -1);
+Polynomial<capd::Complex> projR(const Polynomial<capd::Complex> &poly, int upToDegree = -1);
 
 CVector gamma(int p, int q, capd::Complex lambda1, capd::Complex lambda2);
 
-// required to create unordered_map with keys of type pair<int, int>
-struct hash_pair {
-    template <class T1, class T2>
-    size_t operator()(const std::pair<T1, T2>& p) const
-    {
-        size_t hash1 = std::hash<T1>{}(p.first);
-        size_t hash2 = std::hash<T2>{}(p.second);
-        return hash1 ^ (hash2 + 0x9e3779b9 + (hash1 << 6) + (hash1 >> 2));
-    }
-};
+PairMap<Polynomial<capd::Complex>> pqCoefficients(const Polynomial<capd::Complex> &poly, int upToDegree);
 
-std::unordered_map<std::pair<int, int>, Polynomial, hash_pair> pqCoefficients(const Polynomial &poly, int upToDegree);
+Polynomial<capd::Complex> operatorL(const Polynomial<capd::Complex> Psi, const Polynomial<capd::Complex> &N, const CMatrix &lambda);
 
-Polynomial operatorL(const Polynomial Psi, const Polynomial &N, const CMatrix &lambda);
-
-PolynomialMatrix<4> D(const Polynomial &F);
+PolynomialMatrix<capd::Complex, 4> D(const Polynomial<capd::Complex> &F);
 
 #endif

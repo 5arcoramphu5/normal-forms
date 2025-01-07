@@ -1,4 +1,5 @@
 #include "debugUtils.h"
+#include "../containers/Polynomial.cpp"
 
 using namespace std;
 using namespace capd;
@@ -10,7 +11,8 @@ using namespace capd;
 //     return os;
 // }
 
-string toString(CJet polynomial, const string vars[])
+template<ArithmeticType Coeff>
+string toString(Polynomial<Coeff> polynomial, const string vars[])
 {    
     const Multiindex zero(polynomial.dimension());
     string result = "\t";
@@ -20,13 +22,13 @@ string toString(CJet polynomial, const string vars[])
         stringstream ss;
         for(int deg = 0; deg <= polynomial.degree(); ++deg)
         {
-            Multiindex index(zero);
+            Multiindex index(polynomial.dimension());
             index[0] = deg;
 
             do
             {
                 Complex coeff = polynomial(i, index);
-                if(coeff != Complex(0, 0))
+                if(coeff != (Coeff)0)
                 {
                     if(index != zero)
                     {

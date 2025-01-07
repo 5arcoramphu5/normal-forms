@@ -5,23 +5,24 @@
 using namespace std;
 using namespace capd;
 
-Polynomial Polynomial::fromToDegree(int degreeFrom, int degreeTo) const
+template<ArithmeticType Coeff>
+Polynomial<Coeff> Polynomial<Coeff>::fromToDegree(int degreeFrom, int degreeTo) const
 {
     if(degreeFrom < 0 || degreeTo < 0 || degreeFrom > degreeTo) throw runtime_error("invalid degrees");
 
-    if(degreeTo > degree())
-        degreeTo = degree();
+    if(degreeTo > this->degree())
+        degreeTo = this->degree();
     
-    Polynomial result(imageDimension(), dimension(), degreeTo);
+    Polynomial<Coeff> result(this->imageDimension(), this->dimension(), degreeTo);
 
     for(int deg = degreeFrom; deg <= degreeTo; ++deg)
     {
-        Multiindex index(dimension());
+        Multiindex index(this->dimension());
         index[0] = deg;
 
         do
         {
-            for(int i = 0; i < imageDimension(); ++i)
+            for(int i = 0; i < this->imageDimension(); ++i)
                 result(i, index) = (*this)(i, index);
         }while(index.hasNext());
     }
@@ -29,10 +30,11 @@ Polynomial Polynomial::fromToDegree(int degreeFrom, int degreeTo) const
     return result;
 }
 
-Polynomial operator+(const Polynomial &p1, const Polynomial &p2)
+template<ArithmeticType Coeff>
+Polynomial<Coeff> operator+(const Polynomial<Coeff> &p1, const Polynomial<Coeff> &p2)
 {
     int resultDegree = std::max(p1.degree(), p2.degree());
-    Polynomial result(4, 4, resultDegree);
+    Polynomial<Coeff> result(4, 4, resultDegree);
 
     for(int deg = 0; deg <= resultDegree; ++deg)
     {
@@ -52,10 +54,11 @@ Polynomial operator+(const Polynomial &p1, const Polynomial &p2)
     return result;
 }
 
-Polynomial operator-(const Polynomial &p1, const Polynomial &p2)
+template<ArithmeticType Coeff>
+Polynomial<Coeff> operator-(const Polynomial<Coeff> &p1, const Polynomial<Coeff> &p2)
 {
     int resultDegree = std::max(p1.degree(), p2.degree());
-    Polynomial result(4, 4, resultDegree);
+    Polynomial<Coeff> result(4, 4, resultDegree);
 
     for(int deg = 0; deg <= resultDegree; ++deg)
     {
@@ -75,9 +78,10 @@ Polynomial operator-(const Polynomial &p1, const Polynomial &p2)
     return result;
 }
 
-Complex compositionProduct(const Polynomial &second, const Multiindex& mi, const Multipointer& a, int p, int k)
+template<ArithmeticType Coeff>
+Coeff compositionProduct(const Polynomial<Coeff> &second, const Multiindex& mi, const Multipointer& a, int p, int k)
 {
-    Complex result = 0;
+    Coeff result = 0;
     const auto is = Multipointer::generateList(p,k);
 
     auto e = is.end();
@@ -91,7 +95,7 @@ Complex compositionProduct(const Polynomial &second, const Multiindex& mi, const
         if(delta.dimension() > second.degree())
             continue;
 
-        Complex temp = second(*ib,delta) * Complex(delta.factorial(), 0);
+        Coeff temp = second(*ib,delta) * Coeff(delta.factorial(), 0);
         ++bt;
         ++ib;
 
@@ -105,7 +109,7 @@ Complex compositionProduct(const Polynomial &second, const Multiindex& mi, const
                 break;
             }
 
-            temp *= second(*ib,delta) * Complex(delta.factorial(), 0);
+            temp *= second(*ib,delta) * Coeff(delta.factorial(), 0);
             ++ib;
         }
 
@@ -115,7 +119,8 @@ Complex compositionProduct(const Polynomial &second, const Multiindex& mi, const
     return result;
 }
 
-void composition(const Polynomial &first, const Polynomial &second, Polynomial &result, const Multipointer& a)
+template<ArithmeticType Coeff>
+void composition(const Polynomial<Coeff> &first, const Polynomial<Coeff> &second, Polynomial<Coeff> &result, const Multipointer& a)
 {
     typename Multiindex::IndicesSet listIndices;
     Multiindex::generateList(result.dimension(), result.degree(), listIndices);
@@ -133,15 +138,16 @@ void composition(const Polynomial &first, const Polynomial &second, Polynomial &
 
             sort(mp.begin(),mp.end());
             auto product = compositionProduct(second, *b, a, p, k);
-            result(a) += first(mp) * product *  Complex(mp.factorial(), 0);
+            result(a) += first(mp) * product * (Coeff)mp.factorial();
         }
     }
 
-    result(a) /= Complex(a.factorial(), 0);
+    result(a) /= (Coeff)a.factorial();
 }
 
 // modified version of substitutionPowerSeries(...), should work for second.degree() < first.degree()
-void polynomialComposition(const Polynomial &first, const Polynomial &second, Polynomial& result)
+template<ArithmeticType Coeff>
+void polynomialComposition(const Polynomial<Coeff> &first, const Polynomial<Coeff> &second, Polynomial<Coeff>& result)
 {
     for(unsigned i=1;i<=first.degree();++i)
     {
@@ -156,10 +162,11 @@ void polynomialComposition(const Polynomial &first, const Polynomial &second, Po
 }
 
 // division of two polynomials C^2 -> C^4, only passed degree coefficients
-Polynomial polynomialDivision(const Polynomial &numerator, const Polynomial &denominator, int degree)
+template<ArithmeticType Coeff>
+Polynomial<Coeff> polynomialDivision(const Polynomial<Coeff> &numerator, const Polynomial<Coeff> &denominator, int degree)
 {
     // TODO: implement proper division
-    Polynomial result(numerator);
+    Polynomial<Coeff> result(numerator);
     Multiindex zero({0, 0});
 
     Multiindex index({degree, 0});
@@ -167,7 +174,7 @@ Polynomial polynomialDivision(const Polynomial &numerator, const Polynomial &den
     {
         for(int i = 0; i < 4; ++i)
         {
-            if(result(i, index) == Complex(0, 0)) continue;
+            if(result(i, index) == (Coeff)0) continue;
             result(i, index) /= denominator(i, zero);
         }
 
@@ -176,13 +183,14 @@ Polynomial polynomialDivision(const Polynomial &numerator, const Polynomial &den
     return result;
 }
 
-Polynomial toPolynomial(const CMatrix &linearPart, const CVector &constant, int degree) // to be deleted
+template<ArithmeticType Coeff>
+Polynomial<Coeff> toPolynomial(const capd::vectalg::Matrix<Coeff, 0, 0> &linearPart, const capd::vectalg::Vector<Coeff, 0> &constant, int degree)
 {
     auto dim = linearPart.dimension();
     if(constant.dimension() != dim.first)
         throw runtime_error("invalid dimensions of matrix and vector");
 
-    Polynomial result(dim.first, dim.second, 1);
+    Polynomial<Coeff> result(dim.first, dim.second, 1);
     
     for(int i = 0; i < dim.first; ++i)
     {

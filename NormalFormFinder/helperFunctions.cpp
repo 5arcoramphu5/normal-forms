@@ -1,21 +1,22 @@
 #include "capd/capdlib.h"
 #include "helperFunctions.h"
 #include "../debugUtils/debugUtils.h"
+#include "../containers/PolynomialMatrix.cpp"
 
 using namespace capd;
 using namespace std;
 
-Polynomial getTaylorSeries(const CMap &function, int degree)
+Polynomial<Complex> getTaylorSeries(const CMap &function, int degree)
 {
     CJet taylor(function.imageDimension(), function.dimension(), degree);
     function(CVector({0, 0, 0, 0}), taylor);
     return taylor;
 }
 
-Polynomial projP(const Polynomial &poly, int upToDegree)
+Polynomial<Complex> projP(const Polynomial<Complex> &poly, int upToDegree)
 {
     int maxDeg = upToDegree != -1 ? std::min((int)poly.degree(), upToDegree) : poly.degree();
-    Polynomial result(4, maxDeg);
+    Polynomial<Complex> result(4, 4, maxDeg);
 
     for(int i = 0; i < maxDeg; ++i)
         for(int j = 0; 2*i+2*j < maxDeg ; ++j)
@@ -36,10 +37,10 @@ Polynomial projP(const Polynomial &poly, int upToDegree)
     return result;
 }
 
-Polynomial projR(const Polynomial &poly, int upToDegree)
+Polynomial<Complex> projR(const Polynomial<Complex> &poly, int upToDegree)
 {
     int maxDeg = upToDegree != -1 ? std::min((int)poly.degree(), upToDegree) : poly.degree();
-    Polynomial result(4, maxDeg);
+    Polynomial<Complex> result(4, 4, maxDeg);
 
     for(int deg = 0; deg <= maxDeg; ++deg)
     {
@@ -83,9 +84,9 @@ bool isNonzero(CColumnVector columnVector)
     return false;
 }
 
-std::unordered_map<std::pair<int,int>,Polynomial,hash_pair> pqCoefficients(const Polynomial & poly, int upToDegree)
+PairMap<Polynomial<Complex>> pqCoefficients(const Polynomial<Complex> & poly, int upToDegree)
 {
-    unordered_map<pair<int, int>, Polynomial, hash_pair> coefficients;
+    PairMap<Polynomial<Complex>> coefficients;
 
     for(int deg = 0; deg <= upToDegree; ++deg)
     {
@@ -100,9 +101,9 @@ std::unordered_map<std::pair<int,int>,Polynomial,hash_pair> pqCoefficients(const
                 int q = index[2] - index[3]; // l - m
                 auto pair_pq = make_pair(p, q);
 
-                if (coefficients.find(pair_pq) == coefficients.end()) // not present in dictionary
+                if (!coefficients.contains(pair_pq))
                 {
-                    Polynomial newElem(4, 2, upToDegree);
+                    Polynomial<Complex> newElem(4, 2, upToDegree);
                     coefficients.insert(make_pair(pair_pq, newElem));
                 }
 
@@ -116,14 +117,14 @@ std::unordered_map<std::pair<int,int>,Polynomial,hash_pair> pqCoefficients(const
     return coefficients;
 }
 
-Polynomial operatorL(const Polynomial Psi, const Polynomial &N, const CMatrix &lambda)
+Polynomial<Complex> operatorL(const Polynomial<Complex> Psi, const Polynomial<Complex> &N, const CMatrix &lambda)
 {
-    return D(Psi) * N - (Polynomial)(lambda*Psi);
+    return D(Psi) * N - (Polynomial<Complex>)(lambda*Psi);
 }
 
-PolynomialMatrix<4> D(const Polynomial &F)
+PolynomialMatrix<Complex, 4> D(const Polynomial<Complex> &F)
 {
-    PolynomialMatrix<4> result(F.degree());
+    PolynomialMatrix<Complex, 4> result(F.degree());
 
     const Multiindex zero(F.dimension());
 
