@@ -2,14 +2,16 @@
 #define _HELPER_FUNCTIONS_
 
 #include "../typedefs.h"
+#include "../containers/Polynomial.h"
+#include "../containers/PolynomialMatrix.h"
+
 #include <unordered_map>
-#include <vector>
 
-CJet getTaylorSeries(const CMap &function, int degree);
+Polynomial getTaylorSeries(const CMap &function, int degree);
 
-CJet projP(const CJet &poly, int upToDegree = -1);
+Polynomial projP(const Polynomial &poly, int upToDegree = -1);
 
-CJet projR(const CJet &poly, int upToDegree = -1);
+Polynomial projR(const Polynomial &poly, int upToDegree = -1);
 
 CVector gamma(int p, int q, capd::Complex lambda1, capd::Complex lambda2);
 
@@ -24,43 +26,10 @@ struct hash_pair {
     }
 };
 
-std::unordered_map<std::pair<int, int>, CJet, hash_pair> pqCoefficients(const CJet &poly, int upToDegree);
+std::unordered_map<std::pair<int, int>, Polynomial, hash_pair> pqCoefficients(const Polynomial &poly, int upToDegree);
 
-CJet polyDivision(const CJet &numerator, const CJet &denominator, int degree);
+Polynomial operatorL(const Polynomial Psi, const Polynomial &N, const CMatrix &lambda);
 
-CJet fromToDegree(const CJet &poly, int degreeFrom, int degreeTo);
-
-CJet operatorL(const CJet Psi, const CJet &N, const CMatrix &lambda);
-
-CJet jetSubstraction(const CJet &p1, const CJet &p2);
-
-CJet jetAddition(const CJet &p1, const CJet &p2);
-
-CJet jetAddition(const CMatrix &linearPart, const CVector &constant, int degree);
-
-template<int N>
-class CJetMatrix : public std::array<std::array<CJet, N>, N>
-{
-    int matrixDegree;
-
-    public:
-    CJetMatrix(int degree) : matrixDegree(degree)
-    { 
-        for(auto &array : *this)
-            for(auto &jet : array)
-                jet = CJet(1, N, degree);
-    }
-
-    int degree() const { return matrixDegree; }
-};
-
-CJet multiply(const CJetMatrix<4> &jetMatrix, const CJet &jet);
-
-CJetMatrix<4> D(const CJet &F);
-
-CJet inline reminderPart(const CJet &poly)
-{ return fromToDegree(poly, 2, poly.degree()); }
-
-void jetComposition(const CJet &first, const CJet &second, CJet& result);
+PolynomialMatrix<4> D(const Polynomial &F);
 
 #endif

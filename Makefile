@@ -2,7 +2,7 @@
 PROGS = main
 
 # a list of all your units to be linked with your programs
-OTHERS = NormalFormFinder/NormalFormFinder NormalFormFinder/helperFunctions debugUtils/debugUtils
+OTHERS = NormalFormFinder/NormalFormFinder NormalFormFinder/helperFunctions debugUtils/debugUtils containers/Polynomial containers/PolynomialMatrix
 
 # path to directory, where script capd-config is located
 CAPDBINDIR = ~/libraries/CAPD/build/bin/
@@ -14,8 +14,6 @@ CXXFLAGS += ${CAPDFLAGS}
 
 # directory where object and dependancy files will be created
 OBJDIR = .obj/
-
-#============ the following should not be changed (it was) =========
 
 OTHERS_OBJ = ${OTHERS:%=${OBJDIR}%.o}
 OBJ_FILES = ${OTHERS_OBJ} ${PROGS:%=${OBJDIR}%.o}

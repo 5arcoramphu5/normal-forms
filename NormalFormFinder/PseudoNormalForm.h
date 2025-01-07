@@ -2,30 +2,30 @@
 #define _PSEUDO_NORMAL_FORM_H_
 
 #include "NormalFormFinder.h"
-#include "../typedefs.h"
+#include "../containers/Polynomial.h"
 
 class PseudoNormalForm
 {
     private:
-        PseudoNormalForm(int degree, CJet fTaylorSeries) : F(fTaylorSeries), phi(4, 4, degree), n(4, 4, degree), b(4, 4, degree) {}
+        PseudoNormalForm(int degree, Polynomial fTaylorSeries) : F(fTaylorSeries), phi(4, 4, degree), n(4, 4, degree), b(4, 4, degree) {}
 
-        CJet phi;   
-        CJet n;
-        CJet b; 
+        Polynomial phi;   
+        Polynomial n;
+        Polynomial b; 
 
     public:
-        const CJet F; // Taylor series expansions of the input function
+        const Polynomial F; // Taylor series expansions of the input function
 
         // transformation
-        CJet getPhi() const
+        Polynomial getPhi() const
         { return phi; }
         
         // normal form
-        CJet getN() const
+        Polynomial getN() const
         { return n; }
 
         // reminder term
-        CJet getB() const
+        Polynomial getB() const
         { return b; }
 
     template<LoggerType Logger>

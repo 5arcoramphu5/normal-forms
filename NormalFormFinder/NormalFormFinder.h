@@ -3,6 +3,8 @@
 
 #include "../typedefs.h"
 #include "../debugUtils/logging.h"
+#include "../containers/Polynomial.h"
+
 class PseudoNormalForm;
 
 template<LoggerType Logger = Logger<VerbosityLevel::None>>
@@ -29,12 +31,12 @@ class NormalFormFinder
         const CMatrix lambda;
 
         // variables used in computations:
-        CJet F_taylorSeries;
-        CJet F_reminder;
+        Polynomial F_taylorSeries;
+        Polynomial F_reminder;
         capd::Complex lambda1, lambda2;
 
-        CJet a1_reminder;
-        CJet a2_reminder;
+        Polynomial a1_reminder;
+        Polynomial a2_reminder;
 
         int iterations;
 
@@ -45,13 +47,13 @@ class NormalFormFinder
         PointType getPointType(const CMatrix &diagonalMatrix, capd::Complex &lambda1, capd::Complex &lambda2);
 
         // solves equation of type: L(R(Psi)) = R(H)
-        void solveFirstEquation(CJet &Psi, const CJet &H);
+        void solveFirstEquation(Polynomial &Psi, const Polynomial &H);
         // solves equation of type: N + B = P(H)
-        void solveSecondEquation(CJet &N, CJet &B, const CJet &H);
+        void solveSecondEquation(Polynomial &N, Polynomial &B, const Polynomial &H);
 
-        void checkFirstEquation(const CJet &Psi, const CJet &H, const CJet &N);
+        void checkFirstEquation(const Polynomial &Psi, const Polynomial &H, const Polynomial &N);
 
-        void checkSecondEquation(const CJet &N, const CJet &B, const CJet &H);
+        void checkSecondEquation(const Polynomial &N, const Polynomial &B, const Polynomial &H);
 
         void checkNormalFormEquality(const PseudoNormalForm &normalForm);
 

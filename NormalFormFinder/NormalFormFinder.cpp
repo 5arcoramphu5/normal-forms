@@ -22,17 +22,17 @@ NormalFormFinder<Logger>::NormalFormFinder(int _degree, const CMap &_f, const CV
 template<LoggerType Logger>
 PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
 {
-    CJet f_taylorSeries = getTaylorSeries(f, degree+1);
-
-    auto invJ_P = jetAddition(invJ, p, degree+1); // F(X) = J f(p + J^-1 X)
-    F_taylorSeries = CJet(4, 4, invJ_P.degree() * f_taylorSeries.degree());
-    jetComposition(f_taylorSeries, invJ_P, F_taylorSeries);
+    Polynomial f_taylorSeries = getTaylorSeries(f, degree+1);
+    
+    auto invJ_P = toPolynomial(invJ, p, degree+1); // F(X) = J f(p + J^-1 X)
+    F_taylorSeries = Polynomial(4, 4, invJ_P.degree() * f_taylorSeries.degree());
+    polynomialComposition(f_taylorSeries, invJ_P, F_taylorSeries);
     F_taylorSeries = J * F_taylorSeries;
 
     log<Debug>("F:");
     log<Debug>(toString(F_taylorSeries));
 
-    F_reminder = fromToDegree(F_taylorSeries, 2, degree+1);
+    F_reminder = F_taylorSeries.fromToDegree(2, degree+1);
     log<Debug>("F reminder:");
     log<Debug>(toString(F_reminder));
 
@@ -91,15 +91,15 @@ PseudoNormalForm NormalFormFinder<Logger>::getInitialNormalFormValues()
 template<LoggerType Logger>
 void NormalFormFinder<Logger>::setInitialValues()
 {
-    a1_reminder = CJet(1, 2, degree+1);
-    a2_reminder = CJet(1, 2, degree+1);
+    a1_reminder = Polynomial(1, 2, degree+1);
+    a2_reminder = Polynomial(1, 2, degree+1);
 }
 
 template<LoggerType Logger>
 void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm)
 {       
-    CJet FPhi(4, 4, normalForm.phi.degree());
-    jetComposition(F_reminder, normalForm.phi, FPhi);
+    Polynomial FPhi(4, 4, normalForm.phi.degree());
+    polynomialComposition(F_reminder, normalForm.phi, FPhi);
     
     solveFirstEquation(normalForm.phi, FPhi);
     checkFirstEquation(normalForm.phi, FPhi, normalForm.n);
@@ -140,9 +140,9 @@ typename NormalFormFinder<Logger>::PointType NormalFormFinder<Logger>::getPointT
 }
 
 template<LoggerType Logger>
-void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
+void NormalFormFinder<Logger>::solveFirstEquation(Polynomial &Psi, const Polynomial &H)
 {
-    CJet RH = projR(H, iterations+1);
+    Polynomial RH = projR(H, iterations+1);
 
     auto pq_coeffs = pqCoefficients(RH, iterations+1);
 
@@ -155,7 +155,7 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
         if( (iterations+1 - p - q) % 2 == 1 ) continue;
 
         auto _gamma = gamma(p, q, lambda1, lambda2);
-        CJet denominator(4, 2, iterations+1); // gamma + pa_1 + qa_2
+        Polynomial denominator(4, 2, iterations+1); // gamma + pa_1 + qa_2
 
         Multiindex zero({0, 0});
         for(int i = 0; i < 4; ++i)
@@ -174,7 +174,7 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
 
         int deg = (iterations+1 - p - q) / 2;
 
-        CJet psi_pq = polyDivision(h_pq, denominator, deg);
+        Polynomial psi_pq = polynomialDivision(h_pq, denominator, deg);
 
         Multiindex ind({deg, 0});
         do 
@@ -194,24 +194,24 @@ void NormalFormFinder<Logger>::solveFirstEquation(CJet &Psi, const CJet &H)
 }
 
 template <LoggerType Logger>
-void NormalFormFinder<Logger>::checkFirstEquation(const CJet &Psi, const CJet &H, const CJet &N)
+void NormalFormFinder<Logger>::checkFirstEquation(const Polynomial &Psi, const Polynomial &H, const Polynomial &N)
 {
-    auto LHS = fromToDegree(operatorL(projR(reminderPart(Psi)), N, lambda), 0, iterations+1);
-    auto RHS = fromToDegree(projR(H), 0, iterations+1);
+    auto LHS = operatorL(projR(Psi.reminderPart()), N, lambda).fromToDegree(0, iterations+1);
+    auto RHS = projR(H).fromToDegree(0, iterations+1);
     log<Diagnostic>("first equation (LHS - RHS):");
-    log<Diagnostic>(toString(jetSubstraction(LHS, RHS)));
+    log<Diagnostic>(toString(LHS - RHS));
 }
 
 template<LoggerType Logger>
-void NormalFormFinder<Logger>::solveSecondEquation(CJet &N, CJet &B, const CJet &H)
+void NormalFormFinder<Logger>::solveSecondEquation(Polynomial &N, Polynomial &B, const Polynomial &H)
 {
     if(iterations%2 == 1)
         return;
 
     // get h1, h2, h3, h4 - parts of P projection of H
-    CJet h[4]; 
+    Polynomial h[4]; 
     for(int i = 0; i < 4; ++i)
-        h[i] = CJet(1, 2, iterations+1);
+        h[i] = Polynomial(1, 2, iterations+1);
 
     for(int i = 0; i < iterations+1; ++i)
         for(int j = 0; 2*i+2*j < iterations+1; ++j)
@@ -224,7 +224,7 @@ void NormalFormFinder<Logger>::solveSecondEquation(CJet &N, CJet &B, const CJet 
         }
 
     // calculate a1, a2, b1, b2
-    CJet b1(1, 2, iterations+1), b2(1, 2, iterations+1);
+    Polynomial b1(1, 2, iterations+1), b2(1, 2, iterations+1);
 
     for(int deg = 0; deg <= iterations+1; ++deg)
     {
@@ -260,22 +260,22 @@ void NormalFormFinder<Logger>::solveSecondEquation(CJet &N, CJet &B, const CJet 
 }
 
 template <LoggerType Logger>
-void NormalFormFinder<Logger>::checkSecondEquation(const CJet &N, const CJet &B, const CJet &H)
+void NormalFormFinder<Logger>::checkSecondEquation(const Polynomial &N, const Polynomial &B, const Polynomial &H)
 {
-    auto LHS = fromToDegree(jetAddition(reminderPart(N), reminderPart(B)), 0, iterations+1);
-    auto RHS = fromToDegree(projP(H), 0, iterations+1);
+    auto LHS = (N.reminderPart() + B.reminderPart()).fromToDegree(0, iterations+1);
+    auto RHS = projP(H).fromToDegree(0, iterations+1);
     log<Diagnostic>("second equation (LHS - RHS):");
-    log<Diagnostic>(toString(jetSubstraction(LHS, RHS)));
+    log<Diagnostic>(toString(LHS - RHS));
 }
 
 template <LoggerType Logger>
 void NormalFormFinder<Logger>::checkNormalFormEquality(const PseudoNormalForm &normalForm)
 {
     log<Diagnostic>("Normal form condition LHS:");
-    auto LHS = jetAddition(multiply(D(normalForm.phi), normalForm.n), reminderPart(normalForm.b));
+    auto LHS = D(normalForm.phi) * normalForm.n + normalForm.b.reminderPart();
 
-    CJet RHS(4, 4, normalForm.phi.degree());
-    jetComposition(F_reminder, normalForm.phi, RHS);
+    Polynomial RHS(4, 4, normalForm.phi.degree());
+    polynomialComposition(F_reminder, normalForm.phi, RHS);
 
-    log<Diagnostic>(toString(jetSubstraction(LHS, RHS)));
+    log<Diagnostic>(toString(LHS - RHS));
 }
