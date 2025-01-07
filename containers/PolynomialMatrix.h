@@ -1,5 +1,4 @@
-#ifndef _POLYNOMIAL_MATRIX_H_
-#define _POLYNOMIAL_MATRIX_H_
+#pragma once
 
 #include "Polynomial.h"
 
@@ -21,5 +20,3 @@ class PolynomialMatrix : public std::array<std::array<Polynomial<Coeff>, N>, N>
 
 template<ArithmeticType Coeff, int N>
 Polynomial<Coeff> operator*(const PolynomialMatrix<Coeff, N> &jetMatrix, const Polynomial<Coeff> &jet);
-
-#endif

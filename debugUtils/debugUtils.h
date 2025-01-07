@@ -1,5 +1,4 @@
-#ifndef _DEBUG_UTILS_
-#define _DEBUG_UTILS_
+#pragma once
 
 #include "capd/capdlib.h"
 #include "../typedefs.h"
@@ -11,4 +10,5 @@ const std::string defaultVars[] = {"x1", "x2", "x3", "x4"};
 template<ArithmeticType Coeff>
 std::string toString(Polynomial<Coeff> polynomial, const std::string vars[] = defaultVars);
 
-#endif
+template<ArithmeticType Coeff>
+std::string toCoefficientString(Polynomial<Coeff> polynomial);

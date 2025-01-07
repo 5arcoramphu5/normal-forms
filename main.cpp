@@ -8,7 +8,9 @@ using namespace capd;
 using capd::autodiff::Node;
 
 #define MAX_DERIVATIVE 10
-#define METHOD_DEGREE 5
+#define METHOD_DEGREE 3
+
+#define LOGGER Logger<Diagnostic>
 
 void diagonal_matrix_test()
 {
@@ -35,7 +37,7 @@ void diagonal_matrix_test()
     CMatrix J({ {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1} });
     CMatrix invJ({ {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1} });
 
-    NormalFormFinder<Logger<Diagnostic>> finder(METHOD_DEGREE, f, p, lambda, J, invJ);
+    NormalFormFinder<LOGGER> finder(METHOD_DEGREE, f, p, lambda, J, invJ);
     PseudoNormalForm normalForm = finder.calculatePseudoNormalForm();
 }
 
@@ -74,7 +76,7 @@ void henon_heiles_test()
 
     CVector p({0, 0, 0, 0});
 
-    NormalFormFinder<Logger<Diagnostic>> finder(METHOD_DEGREE, f, p, lambda, J, invJ);
+    NormalFormFinder<LOGGER> finder(METHOD_DEGREE, f, p, lambda, J, invJ);
     PseudoNormalForm normalForm = finder.calculatePseudoNormalForm();
 }
 
@@ -125,7 +127,7 @@ void PCR3BP_test()
         {0.22382, -0.22382, Complex(0, -0.40957), Complex(0, 0.40957)}, 
         {1, 1, 1, 1} });
 
-    NormalFormFinder<Logger<Diagnostic>> finder(METHOD_DEGREE, f, p, lambda, J, invJ);
+    NormalFormFinder<LOGGER> finder(METHOD_DEGREE, f, p, lambda, J, invJ);
     PseudoNormalForm normalForm = finder.calculatePseudoNormalForm();
 }
 

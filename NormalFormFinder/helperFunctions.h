@@ -1,5 +1,4 @@
-#ifndef _HELPER_FUNCTIONS_
-#define _HELPER_FUNCTIONS_
+#pragma once
 
 #include "../typedefs.h"
 #include "../containers/Polynomial.h"
@@ -19,5 +18,3 @@ PairMap<Polynomial<capd::Complex>> pqCoefficients(const Polynomial<capd::Complex
 Polynomial<capd::Complex> operatorL(const Polynomial<capd::Complex> Psi, const Polynomial<capd::Complex> &N, const CMatrix &lambda);
 
 PolynomialMatrix<capd::Complex, 4> D(const Polynomial<capd::Complex> &F);
-
-#endif

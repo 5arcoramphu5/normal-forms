@@ -59,3 +59,31 @@ string toString(Polynomial<Coeff> polynomial, const string vars[])
 
     return result;
 }
+
+template<ArithmeticType Coeff>
+std::string toCoefficientString(Polynomial<Coeff> polynomial)
+{
+    stringstream result;
+    result << "{\n";
+    for(int i = 0; i < polynomial.imageDimension(); ++i)
+    {
+        for(int deg = 0; deg <= polynomial.degree(); ++deg)
+        {
+            Multiindex index(polynomial.dimension());
+            index[0] = deg;
+
+            do
+            {
+                Complex coeff = polynomial(i, index);
+                result << coeff << " ";
+            }while(index.hasNext());
+
+            result << endl;
+        }
+        if(i != polynomial.imageDimension()-1)
+            result << "," << endl;
+    }
+    result << "}";
+
+    return result.str();
+}

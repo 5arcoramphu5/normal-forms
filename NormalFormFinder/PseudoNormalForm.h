@@ -1,5 +1,4 @@
-#ifndef _PSEUDO_NORMAL_FORM_H_
-#define _PSEUDO_NORMAL_FORM_H_
+#pragma once
 
 #include "NormalFormFinder.h"
 #include "../containers/Polynomial.h"
@@ -31,5 +30,3 @@ class PseudoNormalForm
     template<LoggerType Logger>
     friend class NormalFormFinder;
 };
-
-#endif

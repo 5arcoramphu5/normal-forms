@@ -1,5 +1,4 @@
-#ifndef _PAIR_MAP_H_
-#define _PAIR_MAP_H_
+#pragma once
 
 #include <unordered_map>
 
@@ -21,5 +20,3 @@ class PairMap : public std::unordered_map<std::pair<int, int>, T, hash_pair>
         inline bool contains(const std::pair<int, int> &pair)
         { return this->find(pair) != this->end(); }
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _POLYNOMIAL_H_
-#define _POLYNOMIAL_H_
+#pragma once
 
 #include "capd/vectalg/lib.h"
 #include "../typedefs.h"
@@ -46,5 +45,3 @@ Polynomial<Coeff> polynomialDivision(const Polynomial<Coeff> &numerator, const P
 
 template<ArithmeticType Coeff>
 Polynomial<Coeff> toPolynomial(const capd::vectalg::Matrix<Coeff, 0, 0> &linearPart, const capd::vectalg::Vector<Coeff, 0> &constant, int degree);
-
-#endif

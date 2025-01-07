@@ -1,5 +1,4 @@
-#ifndef _NORMAL_FORM_FINDER_H_
-#define _NORMAL_FORM_FINDER_H_
+#pragma once
 
 #include "../typedefs.h"
 #include "../debugUtils/logging.h"
@@ -57,10 +56,10 @@ class NormalFormFinder
 
         void checkNormalFormEquality(const PseudoNormalForm &normalForm);
 
-        template<VerbosityLevel MessageVerbosity, Streamable MessageType>
-        static inline void log(MessageType message)
+        template<VerbosityLevel MessageVerbosity, Streamable... MessageTypes>
+        static inline void log(MessageTypes... message)
         { 
-            Logger::template log<MessageVerbosity>(message); 
+            Logger::template log<MessageVerbosity>(message...); 
         }
 
     public:
@@ -68,5 +67,3 @@ class NormalFormFinder
 
         PseudoNormalForm calculatePseudoNormalForm();
 };
-
-#endif

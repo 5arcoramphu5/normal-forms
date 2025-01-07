@@ -30,12 +30,10 @@ PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
     polynomialComposition(f_taylorSeries, invJ_P, F_taylorSeries);
     F_taylorSeries = J * F_taylorSeries;
 
-    log<Debug>("F:");
-    log<Debug>(toString(F_taylorSeries));
+    log<Debug>("F:\n", F_taylorSeries);
 
     F_reminder = F_taylorSeries.fromToDegree(2, degree+1);
-    log<Debug>("F reminder:");
-    log<Debug>(toString(F_reminder));
+    log<Debug>("F reminder:\n", F_reminder);
 
     PointType pointType = getPointType(lambda, lambda1, lambda2);
     if(pointType == PointType::Unsupported)
@@ -43,14 +41,10 @@ PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
     if(pointType == PointType::SaddleCenter) // TODO: to be deleted
         throw runtime_error("Case not implemented yet.");
 
-    log<Debug>("lambda: ");
-    log<Debug>(lambda);
-    log<Debug>("lambda1, lambda2: ");
-    log<Debug>(lambda1);
-    log<Debug>(lambda2);
+    log<Debug>("lambda:\n", lambda);
+    log<Debug>("lambda1, lambda2: ", lambda1, lambda2);
 
-    log<Diagnostic>("Point type: " + to_string(pointType));
-    log<Diagnostic>("");
+    log<Diagnostic>("Point type: ", to_string(pointType), "\n");
 
     PseudoNormalForm normalForm = getInitialNormalFormValues();
     setInitialValues();
@@ -62,11 +56,11 @@ PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
         nextIteration(normalForm);
         
         log<Diagnostic>("--------------------------------");
-        log<Minimal>("Phi:\n" + toString(normalForm.getPhi()));
-        log<Minimal>("N:\n" + toString(normalForm.getN()));
-        log<Minimal>("B:\n" + toString(normalForm.getB()));
-        log<Diagnostic>("a1:\n" + toString(a1_reminder));
-        log<Diagnostic>("a2:\n" + toString(a2_reminder));
+        log<Minimal>("Phi:\n", normalForm.getPhi());
+        log<Minimal>("N:\n", normalForm.getN());
+        log<Minimal>("B:\n", normalForm.getB());
+        log<Diagnostic>("a1:\n", a1_reminder);
+        log<Diagnostic>("a2:\n", a2_reminder);
     }
 
     return normalForm;
@@ -103,12 +97,21 @@ void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm)
     polynomialComposition(F_reminder, normalForm.phi, FPhi);
     
     solveFirstEquation(normalForm.phi, FPhi);
-    checkFirstEquation(normalForm.phi, FPhi, normalForm.n);
-
+    Logger::template enableIf<Diagnostic>( [normalForm, FPhi, this] () 
+    { 
+        this->checkFirstEquation(normalForm.phi, FPhi, normalForm.n); 
+    } );
+    
     solveSecondEquation(normalForm.n, normalForm.b, FPhi);
-    checkSecondEquation(normalForm.n, normalForm.b, FPhi);
+    Logger::template enableIf<Diagnostic>( [normalForm, FPhi, this] () 
+    { 
+        this->checkSecondEquation(normalForm.n, normalForm.b, FPhi); 
+    } );
 
-    // checkNormalFormEquality(normalForm);
+    Logger::template enableIf<Diagnostic>( [normalForm, this] () 
+    { 
+        this->checkNormalFormEquality(normalForm); 
+    } );
 }
 
 template<LoggerType Logger>
@@ -199,8 +202,7 @@ void NormalFormFinder<Logger>::checkFirstEquation(const Polynomial<Complex> &Psi
 {
     auto LHS = operatorL(projR(Psi.reminderPart()), N, lambda).fromToDegree(0, iterations+1);
     auto RHS = projR(H).fromToDegree(0, iterations+1);
-    log<Diagnostic>("first equation (LHS - RHS):");
-    log<Diagnostic>(toString(LHS - RHS));
+    log<Diagnostic>("first equation (LHS - RHS):\n", LHS - RHS);
 }
 
 template<LoggerType Logger>
@@ -265,18 +267,15 @@ void NormalFormFinder<Logger>::checkSecondEquation(const Polynomial<Complex> &N,
 {
     auto LHS = (N.reminderPart() + B.reminderPart()).fromToDegree(0, iterations+1);
     auto RHS = projP(H).fromToDegree(0, iterations+1);
-    log<Diagnostic>("second equation (LHS - RHS):");
-    log<Diagnostic>(toString(LHS - RHS));
+    log<Diagnostic>("second equation (LHS - RHS):\n", LHS - RHS);
 }
 
 template <LoggerType Logger>
 void NormalFormFinder<Logger>::checkNormalFormEquality(const PseudoNormalForm &normalForm)
 {
-    log<Diagnostic>("Normal form condition LHS:");
     auto LHS = D(normalForm.phi) * normalForm.n + normalForm.b.reminderPart();
-
     Polynomial<Complex> RHS(4, 4, normalForm.phi.degree());
     polynomialComposition(F_reminder, normalForm.phi, RHS);
 
-    log<Diagnostic>(toString(LHS - RHS));
+    log<Diagnostic>("Normal form condition (LHS - RHS):\n", LHS - RHS);
 }
