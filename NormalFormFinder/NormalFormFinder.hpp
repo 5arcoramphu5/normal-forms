@@ -1,10 +1,9 @@
 #pragma once
 
 #include "../typedefs.h"
-#include "../debugUtils/logging.h"
-#include "../containers/Polynomial.h"
-
-class PseudoNormalForm;
+#include "../debugUtils/logging.hpp"
+#include "../containers/Polynomial.hpp"
+#include "PseudoNormalForm.h"
 
 template<LoggerType Logger = Logger<VerbosityLevel::None>>
 class NormalFormFinder
@@ -67,3 +66,5 @@ class NormalFormFinder
 
         PseudoNormalForm calculatePseudoNormalForm();
 };
+
+#include "NormalFormFinder.tpp"

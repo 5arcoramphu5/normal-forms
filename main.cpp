@@ -1,8 +1,8 @@
 #include <iostream>
 
 #include "typedefs.h"
-#include "debugUtils/debugUtils.h"
-#include "NormalFormFinder/NormalFormFinder.cpp"
+#include "debugUtils/debugUtils.hpp"
+#include "NormalFormFinder/NormalFormFinder.hpp"
 using namespace std;
 using namespace capd;
 using capd::autodiff::Node;
@@ -134,8 +134,7 @@ void PCR3BP_test()
 int main()
 {
     diagonal_matrix_test();
-    henon_heiles_test();
+    // henon_heiles_test();
     // PCR3BP_test();
-
     return 0;
 }

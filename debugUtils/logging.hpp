@@ -2,41 +2,14 @@
 
 #include <string>
 #include "capd/capdlib.h"
-#include "../containers/Polynomial.h"
+#include "../containers/Polynomial.hpp"
+#include  "../templateUtils.hpp"
 
 enum VerbosityLevel{None, Minimal, Diagnostic, Debug, Error};
 
 template<typename T>
 concept LoggerType = requires (std::string message) {
     { T::template log<Minimal>(message) };
-};
-
-template <typename T>
-concept Streamable = requires(std::ostream &os, T value) {
-    { os << value } -> std::convertible_to<std::ostream&>;
-};
-
-template <typename T>
-concept Invokable = requires(T t) {
-    t();
-};
-
-template<bool enable>
-struct invokeIf {};
-
-template<>
-struct invokeIf<true>
-{
-    template<Invokable FunctionType>
-    static inline void invoke(FunctionType function)
-    { function(); }
-};
-
-template<>
-struct invokeIf<false>
-{
-    template<Invokable FunctionType>
-    static inline void invoke(FunctionType function) {}
 };
 
 template<typename T>

@@ -1,7 +1,6 @@
 #include "capd/capdlib.h"
-#include "helperFunctions.h"
-#include "../debugUtils/debugUtils.h"
-#include "../containers/PolynomialMatrix.cpp"
+#include "helperFunctions.hpp"
+#include "../debugUtils/debugUtils.hpp"
 
 using namespace capd;
 using namespace std;

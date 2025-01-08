@@ -1,9 +1,9 @@
 #pragma once
 
 #include "../typedefs.h"
-#include "../containers/Polynomial.h"
-#include "../containers/PolynomialMatrix.h"
-#include "../containers/PairMap.h"
+#include "../containers/Polynomial.hpp"
+#include "../containers/PolynomialMatrix.hpp"
+#include "../containers/PairMap.hpp"
 
 Polynomial<capd::Complex> getTaylorSeries(const CMap &function, int degree);
 

@@ -1,14 +1,11 @@
-#include "Polynomial.h"
+#pragma once 
 
-#include "capd/capdlib.h"
-
-using namespace std;
-using namespace capd;
+#include "Polynomial.hpp"
 
 template<ArithmeticType Coeff>
 Polynomial<Coeff> Polynomial<Coeff>::fromToDegree(int degreeFrom, int degreeTo) const
 {
-    if(degreeFrom < 0 || degreeTo < 0 || degreeFrom > degreeTo) throw runtime_error("invalid degrees");
+    if(degreeFrom < 0 || degreeTo < 0 || degreeFrom > degreeTo) throw std::runtime_error("invalid degrees");
 
     if(degreeTo > this->degree())
         degreeTo = this->degree();
@@ -17,7 +14,7 @@ Polynomial<Coeff> Polynomial<Coeff>::fromToDegree(int degreeFrom, int degreeTo) 
 
     for(int deg = degreeFrom; deg <= degreeTo; ++deg)
     {
-        Multiindex index(this->dimension());
+        capd::Multiindex index(this->dimension());
         index[0] = deg;
 
         do
@@ -38,7 +35,7 @@ Polynomial<Coeff> operator+(const Polynomial<Coeff> &p1, const Polynomial<Coeff>
 
     for(int deg = 0; deg <= resultDegree; ++deg)
     {
-        Multiindex index({deg, 0, 0, 0});
+        capd::Multiindex index({deg, 0, 0, 0});
         do
         {
             for(int i = 0; i < 4; ++i)
@@ -62,7 +59,7 @@ Polynomial<Coeff> operator-(const Polynomial<Coeff> &p1, const Polynomial<Coeff>
 
     for(int deg = 0; deg <= resultDegree; ++deg)
     {
-        Multiindex index({deg, 0, 0, 0});
+        capd::Multiindex index({deg, 0, 0, 0});
         do
         {
             for(int i = 0; i < 4; ++i)
@@ -79,10 +76,10 @@ Polynomial<Coeff> operator-(const Polynomial<Coeff> &p1, const Polynomial<Coeff>
 }
 
 template<ArithmeticType Coeff>
-Coeff compositionProduct(const Polynomial<Coeff> &second, const Multiindex& mi, const Multipointer& a, int p, int k)
+Coeff compositionProduct(const Polynomial<Coeff> &second, const capd::Multiindex& mi, const capd::Multipointer& a, int p, int k)
 {
     Coeff result = 0;
-    const auto is = Multipointer::generateList(p,k);
+    const auto is = capd::Multipointer::generateList(p,k);
 
     auto e = is.end();
     for(auto b = is.begin(); b != e; ++b)
@@ -90,7 +87,7 @@ Coeff compositionProduct(const Polynomial<Coeff> &second, const Multiindex& mi, 
         auto bt = b->begin(), et = b->end();
         auto ib = mi.begin();
 
-        Multipointer delta = a.subMultipointer(*bt);
+        capd::Multipointer delta = a.subMultipointer(*bt);
 
         if(delta.dimension() > second.degree())
             continue;
@@ -101,7 +98,7 @@ Coeff compositionProduct(const Polynomial<Coeff> &second, const Multiindex& mi, 
 
         for( ; bt != et; ++bt)
         {
-            Multipointer delta = a.subMultipointer(*bt);
+            capd::Multipointer delta = a.subMultipointer(*bt);
 
             if(delta.dimension() > second.degree())
             {
@@ -120,10 +117,10 @@ Coeff compositionProduct(const Polynomial<Coeff> &second, const Multiindex& mi, 
 }
 
 template<ArithmeticType Coeff>
-void composition(const Polynomial<Coeff> &first, const Polynomial<Coeff> &second, Polynomial<Coeff> &result, const Multipointer& a)
+void composition(const Polynomial<Coeff> &first, const Polynomial<Coeff> &second, Polynomial<Coeff> &result, const capd::Multipointer& a)
 {
-    typename Multiindex::IndicesSet listIndices;
-    Multiindex::generateList(result.dimension(), result.degree(), listIndices);
+    typename capd::Multiindex::IndicesSet listIndices;
+    capd::Multiindex::generateList(result.dimension(), result.degree(), listIndices);
 
     int p = a.module();
 
@@ -134,9 +131,9 @@ void composition(const Polynomial<Coeff> &first, const Polynomial<Coeff> &second
         auto e = listIndices[k-1].end();
         for(auto b = listIndices[k-1].begin(); b != e; ++b)
         {
-            Multipointer mp(b->dimension(),b->begin());
+            capd::Multipointer mp(b->dimension(),b->begin());
 
-            sort(mp.begin(),mp.end());
+            std::sort(mp.begin(),mp.end());
             auto product = compositionProduct(second, *b, a, p, k);
             result(a) += first(mp) * product * (Coeff)mp.factorial();
         }
@@ -151,7 +148,7 @@ void polynomialComposition(const Polynomial<Coeff> &first, const Polynomial<Coef
 {
     for(unsigned i=1;i<=first.degree();++i)
     {
-        Multipointer a = first.first(i);
+        capd::Multipointer a = first.first(i);
         do
         {
             composition(first, second, result, a);
@@ -167,9 +164,9 @@ Polynomial<Coeff> polynomialDivision(const Polynomial<Coeff> &numerator, const P
 {
     // TODO: implement proper division
     Polynomial<Coeff> result(numerator);
-    Multiindex zero({0, 0});
+    capd::Multiindex zero({0, 0});
 
-    Multiindex index({degree, 0});
+    capd::Multiindex index({degree, 0});
     do
     {
         for(int i = 0; i < 4; ++i)
@@ -188,7 +185,7 @@ Polynomial<Coeff> toPolynomial(const capd::vectalg::Matrix<Coeff, 0, 0> &linearP
 {
     auto dim = linearPart.dimension();
     if(constant.dimension() != dim.first)
-        throw runtime_error("invalid dimensions of matrix and vector");
+        throw std::runtime_error("invalid dimensions of matrix and vector");
 
     Polynomial<Coeff> result(dim.first, dim.second, 1);
     
@@ -196,13 +193,13 @@ Polynomial<Coeff> toPolynomial(const capd::vectalg::Matrix<Coeff, 0, 0> &linearP
     {
         for(int j = 0; j < dim.second; ++j)
         {
-            Multiindex index(dim.second);
+            capd::Multiindex index(dim.second);
             index[j] = 1;
 
             result(i, index) = linearPart[i][j];
         }
 
-        result(i, Multiindex(dim.second)) = constant[i];
+        result(i, capd::Multiindex(dim.second)) = constant[i];
     }
 
     return result;

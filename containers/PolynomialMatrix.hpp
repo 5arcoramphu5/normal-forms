@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Polynomial.h"
+#include "Polynomial.hpp"
 
 template<ArithmeticType Coeff, int N>
 class PolynomialMatrix : public std::array<std::array<Polynomial<Coeff>, N>, N>
@@ -20,3 +20,5 @@ class PolynomialMatrix : public std::array<std::array<Polynomial<Coeff>, N>, N>
 
 template<ArithmeticType Coeff, int N>
 Polynomial<Coeff> operator*(const PolynomialMatrix<Coeff, N> &jetMatrix, const Polynomial<Coeff> &jet);
+
+#include "PolynomialMatrix.tpp"

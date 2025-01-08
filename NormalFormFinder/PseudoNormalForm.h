@@ -1,7 +1,10 @@
 #pragma once
 
-#include "NormalFormFinder.h"
-#include "../containers/Polynomial.h"
+#include "../containers/Polynomial.hpp"
+#include "../debugUtils/logging.hpp"
+
+template<LoggerType Logger>
+class NormalFormFinder;
 
 class PseudoNormalForm
 {

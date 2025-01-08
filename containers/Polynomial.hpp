@@ -2,14 +2,7 @@
 
 #include "capd/vectalg/lib.h"
 #include "../typedefs.h"
-
-template<typename T>
-concept ArithmeticType = requires (T a, T b) {
-    a + b; a += b;
-    a - b; a -= b;
-    a * b; a *= b;
-    a / b; a /= b;
-};
+#include "../templateUtils.hpp"
 
 // a wrapper for CJet, enabling operations on Jets of different degrees
 template<ArithmeticType Coeff>
@@ -45,3 +38,5 @@ Polynomial<Coeff> polynomialDivision(const Polynomial<Coeff> &numerator, const P
 
 template<ArithmeticType Coeff>
 Polynomial<Coeff> toPolynomial(const capd::vectalg::Matrix<Coeff, 0, 0> &linearPart, const capd::vectalg::Vector<Coeff, 0> &constant, int degree);
+
+#include "Polynomial.tpp"
