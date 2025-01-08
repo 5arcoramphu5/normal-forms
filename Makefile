@@ -2,7 +2,7 @@
 PROGS = main
 
 # a list of all your units to be linked with your programs
-OTHERS = NormalFormFinder/helperFunctions
+OTHERS = source/NormalFormFinder/helperFunctions
 
 # path to directory, where script capd-config is located
 CAPDBINDIR = ~/libraries/CAPD/build/bin/

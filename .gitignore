@@ -34,5 +34,8 @@
 # VS Code configuration files
 .vscode/
 
+# Documentation files
+docs
+
 # Specific files
 main

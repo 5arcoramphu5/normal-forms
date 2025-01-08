@@ -1,8 +1,8 @@
 #include <iostream>
 
-#include "typedefs.h"
-#include "debugUtils/debugUtils.hpp"
-#include "NormalFormFinder/NormalFormFinder.hpp"
+#include "source/typedefs.h"
+#include "source/debugUtils/debugUtils.hpp"
+#include "source/NormalFormFinder/NormalFormFinder.hpp"
 using namespace std;
 using namespace capd;
 using capd::autodiff::Node;
