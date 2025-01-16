@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../typedefs.h"
-#include "../debugUtils/logging.hpp"
+#include "../logging/logging.hpp"
 #include "../containers/Polynomial.hpp"
 #include "PseudoNormalForm.h"
 

@@ -3,7 +3,7 @@
 #include "NormalFormFinder.hpp"
 #include "PseudoNormalForm.h"
 #include "helperFunctions.hpp"
-#include "../debugUtils/debugUtils.hpp"
+#include "../logging/logging.hpp"
 #include "../containers/Polynomial.hpp"
 #include "../containers/PolynomialMatrix.hpp"
 
@@ -60,8 +60,8 @@ PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
         log<Minimal>("Phi:\n", normalForm.getPhi());
         log<Minimal>("N:\n", normalForm.getN());
         log<Minimal>("B:\n", normalForm.getB());
-        log<Diagnostic>("a1:\n", a1_reminder);
-        log<Diagnostic>("a2:\n", a2_reminder);
+        log<Debug>("a1:\n", a1_reminder);
+        log<Debug>("a2:\n", a2_reminder);
     }
 
     return normalForm;

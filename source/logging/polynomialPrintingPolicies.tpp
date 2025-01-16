@@ -1,13 +1,6 @@
 #pragma once
 
-#include "debugUtils.hpp"
-
-// print in format compatible with Mathematica
-// ostream& operator<<(ostream& os, const Complex& c)
-// {
-//     os << "(" << c.real() << " + " << c.imag() << "I)";
-//     return os;
-// }
+#include "polynomialPrintingPolicies.hpp"
 
 template<ArithmeticType Coeff>
 std::string toString(Polynomial<Coeff> polynomial, const std::string vars[])

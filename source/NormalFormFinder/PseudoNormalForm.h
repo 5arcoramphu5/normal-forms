@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../containers/Polynomial.hpp"
-#include "../debugUtils/logging.hpp"
+#include "../logging/logging.hpp"
 
 template<LoggerType Logger>
 class NormalFormFinder;

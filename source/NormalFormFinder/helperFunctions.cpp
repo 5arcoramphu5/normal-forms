@@ -1,6 +1,6 @@
 #include "capd/capdlib.h"
 #include "helperFunctions.hpp"
-#include "../debugUtils/debugUtils.hpp"
+#include "../logging/logging.hpp"
 
 using namespace capd;
 using namespace std;

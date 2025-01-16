@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "source/typedefs.h"
-#include "source/debugUtils/debugUtils.hpp"
 #include "source/NormalFormFinder/NormalFormFinder.hpp"
 using namespace std;
 using namespace capd;
@@ -100,7 +99,7 @@ void pcr3bpVectorField(Node /*t*/, Node in[], int /*dimIn*/, Node out[], int /*d
     out[3] = in[2]*(1 - factor1 - factor2) - 2*in[1];
 }
 
-// TODO: not working because of sqrt?
+// not working because of CAPD sqrt
 void PCR3BP_test() 
 {
     int dim=4, noParam=1;
@@ -134,7 +133,7 @@ void PCR3BP_test()
 int main()
 {
     diagonal_matrix_test();
-    // henon_heiles_test();
-    // PCR3BP_test();
+    henon_heiles_test();
+
     return 0;
 }

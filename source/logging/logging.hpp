@@ -2,33 +2,14 @@
 
 #include <string>
 #include "capd/capdlib.h"
-#include "../containers/Polynomial.hpp"
-#include  "../templateUtils.hpp"
+#include "../templateUtils.hpp"
+#include "polynomialPrintingPolicies.hpp"
 
 enum VerbosityLevel{None, Minimal, Diagnostic, Debug, Error};
 
 template<typename T>
 concept LoggerType = requires (std::string message) {
     { T::template log<Minimal>(message) };
-};
-
-template<typename T>
-concept PolynomialPrintingPolicy = requires (Polynomial<double> p){
-    { T::polyToString(p) } -> std::same_as<std::string>;
-};
-
-struct SymbolicPolynomialPrinting {
-
-    template<ArithmeticType Coeff>
-    static std::string polyToString(const Polynomial<Coeff> &p)
-    { return toString(p); }
-};
-
-struct CoefficientPolynomialPrinting {
-
-    template<ArithmeticType Coeff>
-    static std::string polyToString(const Polynomial<Coeff> &p)
-    { return toCoefficientString(p); }
 };
 
 template<VerbosityLevel Verbosity, PolynomialPrintingPolicy PolynomialPrinting = SymbolicPolynomialPrinting>
