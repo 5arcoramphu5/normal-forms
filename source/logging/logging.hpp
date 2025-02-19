@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include "capd/capdlib.h"
 #include "../templateUtils.hpp"
 #include "polynomialPrintingPolicies.hpp"
 

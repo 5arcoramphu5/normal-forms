@@ -6,8 +6,20 @@
 
 #include "capd/map/Map.hpp"
 
-typedef capd::vectalg::Vector<capd::Complex, 0> CVector;
-typedef capd::vectalg::Matrix<capd::Complex, 0, 0> CMatrix;
-typedef capd::map::Map<CMatrix> CMap;
+template<typename Coeff>
+using Vector = capd::vectalg::Vector<Coeff, 0>;
+
+using CVector = Vector<capd::Complex>;
+
+template<typename Coeff>
+using Matrix = capd::vectalg::Matrix<Coeff, 0, 0>;
+
+using CMatrix = Matrix<capd::Complex>;
+
+template<typename Coeff>
+using Map = capd::map::Map<Matrix<Coeff>>;
+
+using CMap = Map<capd::Complex>;
+
 typedef capd::diffAlgebra::Jet<CMatrix, 0> CJet;
 typedef capd::vectalg::ColumnVector<capd::Complex, 0> CColumnVector;

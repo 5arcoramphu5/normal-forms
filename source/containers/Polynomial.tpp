@@ -144,7 +144,7 @@ void composition(const Polynomial<Coeff> &first, const Polynomial<Coeff> &second
 
 // modified version of substitutionPowerSeries(...), should work for second.degree() < first.degree()
 template<ArithmeticType Coeff>
-void polynomialComposition(const Polynomial<Coeff> &first, const Polynomial<Coeff> &second, Polynomial<Coeff>& result)
+void polynomialComposition(const Polynomial<Coeff> &first, const Polynomial<Coeff> &second, Polynomial<Coeff> &result)
 {
     for(unsigned i=1;i<=first.degree();++i)
     {
@@ -158,25 +158,69 @@ void polynomialComposition(const Polynomial<Coeff> &first, const Polynomial<Coef
     result() = first();
 }
 
-// division of two polynomials C^2 -> C^4, only passed degree coefficients
+template<ArithmeticType Coeff>
+void copyToDimension(const Polynomial<Coeff> &source, Polynomial<Coeff> &destination, int dim)
+{
+    for(int deg = 0; deg <= source.degree() && deg <= destination.degree(); ++deg)
+    {
+        capd::Multiindex index({deg, 0});
+        do
+        {
+            destination(dim, index) = source(0, index);
+        }while(index.hasNext());
+    }
+}
+
+template<ArithmeticType Coeff>
+Polynomial<Coeff> taylorSeriesAtPoint(const Map<Coeff> &map, const Vector<Coeff> &point, int degree)
+{
+    if(degree == 0) // segmentation fault in CAPD in this case
+    {
+        Polynomial<Coeff> result(map.imageDimension(), map.dimension(), 0);
+        result(capd::Multiindex(map.imageDimension())) = map(point);
+        return result;
+    }
+
+    Polynomial<Coeff> result(map.imageDimension(), map.dimension(), degree);
+    map(point, result);
+    return result;
+}
+
+// Taylor series expansion of division of two polynomials C^2 -> C^4, only passed degree coefficients
 template<ArithmeticType Coeff>
 Polynomial<Coeff> polynomialDivision(const Polynomial<Coeff> &numerator, const Polynomial<Coeff> &denominator, int degree)
 {
-    // TODO: implement proper division
-    Polynomial<Coeff> result(numerator);
-    capd::Multiindex zero({0, 0});
+    // Taylor expansion of x/y function
+    Map<Coeff> division(
+        "var: x, y; "
+        "fun: x/y;",
+        degree);
 
-    capd::Multiindex index({degree, 0});
-    do
+    int polyDeg = numerator.degree();
+    Polynomial<Coeff> result(4, 2, degree);
+
+    for(int i = 0; i < 4; ++i)
     {
-        for(int i = 0; i < 4; ++i)
+        Polynomial<Coeff> p(2, 2, polyDeg);
+        for(int deg = 0; deg <= polyDeg; ++deg)
         {
-            if(result(i, index) == (Coeff)0) continue;
-            result(i, index) /= denominator(i, zero);
+            capd::Multiindex index({deg, 0});
+            do
+            {
+                p(0, index) = numerator(i, index);
+                p(1, index) = denominator(i, index);
+            }while(index.hasNext());
         }
 
-    }while(index.hasNext());
-    
+        capd::Multiindex zero({0, 0});
+        auto divisionTaylor = taylorSeriesAtPoint(division, {numerator(i, zero), denominator(i, zero)}, degree);
+
+        Polynomial<Coeff> composition(1, 2, degree);
+        polynomialComposition(divisionTaylor, p, composition);
+
+        copyToDimension(composition, result, i);
+    }
+
     return result;
 }
 
