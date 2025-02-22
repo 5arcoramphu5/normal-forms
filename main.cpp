@@ -7,9 +7,9 @@ using namespace capd;
 using capd::autodiff::Node;
 
 #define MAX_DERIVATIVE 10
-#define METHOD_DEGREE 3
+#define METHOD_DEGREE 4
 
-#define LOGGER Logger<Diagnostic>
+#define LOGGER Logger<Diagnostic, SymbolicPolynomialPrinting, 13>
 
 void diagonal_matrix_test()
 {
@@ -133,7 +133,8 @@ void PCR3BP_test()
 int main()
 {
     diagonal_matrix_test();
-    henon_heiles_test();
+    // henon_heiles_test();
+    PCR3BP_test();
 
     return 0;
 }

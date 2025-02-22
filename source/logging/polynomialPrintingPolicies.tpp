@@ -1,9 +1,18 @@
 #pragma once
 
 #include "polynomialPrintingPolicies.hpp"
+#include "capd/fields/lib.h"
+
+template<ArithmeticType T>
+T round(T value, double precisionMargin)
+{
+    if(std::abs(value) <= precisionMargin)
+        return 0;
+    return value;
+}
 
 template<ArithmeticType Coeff>
-std::string toString(Polynomial<Coeff> polynomial, const std::string vars[])
+std::string toString(Polynomial<Coeff> polynomial, const std::string vars[], double precisionMargin)
 {    
     const capd::Multiindex zero(polynomial.dimension());
     std::string result = "\t";
@@ -19,6 +28,7 @@ std::string toString(Polynomial<Coeff> polynomial, const std::string vars[])
             do
             {
                 Coeff coeff = polynomial(i, index);
+                coeff = round(coeff, precisionMargin);
                 if(coeff != (Coeff)0)
                 {
                     if(index != zero)
@@ -52,7 +62,7 @@ std::string toString(Polynomial<Coeff> polynomial, const std::string vars[])
 }
 
 template<ArithmeticType Coeff>
-std::string toCoefficientString(Polynomial<Coeff> polynomial)
+std::string toCoefficientString(Polynomial<Coeff> polynomial, double precisionMargin)
 {
     std::stringstream result;
     result << "{\n";
@@ -66,6 +76,7 @@ std::string toCoefficientString(Polynomial<Coeff> polynomial)
             do
             {
                 Coeff coeff = polynomial(i, index);
+                coeff = round(coeff, precisionMargin);
                 result << coeff << " ";
             }while(index.hasNext());
 

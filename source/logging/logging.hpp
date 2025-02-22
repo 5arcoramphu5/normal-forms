@@ -11,7 +11,7 @@ concept LoggerType = requires (std::string message) {
     { T::template log<Minimal>(message) };
 };
 
-template<VerbosityLevel Verbosity, PolynomialPrintingPolicy PolynomialPrinting = SymbolicPolynomialPrinting>
+template<VerbosityLevel Verbosity, PolynomialPrintingPolicy PolynomialPrinting = SymbolicPolynomialPrinting, int Precision = -1>
 class Logger
 {
     public:
@@ -42,7 +42,7 @@ class Logger
 
         invokeIf<Verbosity >= MessageVerbosity>::template invoke([polynomial, messages...]()
         {
-            std::cout << PolynomialPrinting::polyToString(polynomial) << " ";
+            std::cout << PolynomialPrinting::polyToString(polynomial, Precision == -1 ? 0 : std::pow(10, -Precision)) << " ";
             log<MessageVerbosity>(messages...);
         });
     }

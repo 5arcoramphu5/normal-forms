@@ -109,7 +109,7 @@ void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm)
         this->checkSecondEquation(normalForm.n, normalForm.b, FPhi); 
     } );
 
-    Logger::template enableIf<Diagnostic>( [normalForm, this] () 
+    Logger::template enableIf<Debug>( [normalForm, this] () 
     { 
         this->checkNormalFormEquality(normalForm); 
     } );
@@ -119,27 +119,34 @@ template<LoggerType Logger>
 typename NormalFormFinder<Logger>::PointType NormalFormFinder<Logger>::getPointType(const CMatrix &diagonalMatrix, capd::Complex &lambda1, capd::Complex &lambda2)
 {
     // find pairs lambda, -lambda on the diagonal
+    int pairWithFirst = -1;
     for(int i = 1; i < 4; ++i)
-    {
         if(diagonalMatrix[0][0] == -diagonalMatrix[i][i])
         {
-            std::vector<int> left;
-            for(int j = 1; j < 4; ++j)
-                if(j != i)
-                    left.push_back(j);
-
-            if(diagonalMatrix[left[0]][left[0]] == -diagonalMatrix[left[1]][left[1]])
-            {
-                lambda1 = diagonalMatrix[0][0];
-                lambda2 = diagonalMatrix[left[0]][left[0]];
-
-                if((lambda1.real() == 0 && lambda2.imag() == 0) || (lambda1.imag() == 0 && lambda2.real() == 0))
-                    return PointType::SaddleCenter;
-
-                return PointType::SaddleFocus;
-            }
+            pairWithFirst = i;
+            break;
         }
-    }
+
+    if(pairWithFirst == -1)
+        return PointType::Unsupported;
+
+    std::vector<int> secondPair;
+    for(int i = 1; i < 4; ++i)
+        if(i != pairWithFirst)
+            secondPair.push_back(i);
+
+    if(diagonalMatrix[secondPair[0]][secondPair[0]] != -diagonalMatrix[secondPair[1]][secondPair[1]])
+        return PointType::Unsupported;
+    
+    lambda1 = diagonalMatrix[0][0];
+    lambda2 = diagonalMatrix[secondPair[0]][secondPair[0]];
+    
+    if( (lambda1.real() == 0 && lambda1.imag() != 0 && lambda2.imag() == 0 && lambda2.real() != 0) || 
+        (lambda1.imag() == 0 && lambda1.real() != 0 && lambda2.real() == 0 && lambda2.imag() != 0) )
+        return PointType::SaddleCenter;
+
+    if( (conj(lambda1) == lambda2 || conj(lambda1) == -lambda2) && lambda1.real() != 0 && lambda1.imag() != 0)
+        return PointType::SaddleFocus;
 
     return PointType::Unsupported;
 }
@@ -278,5 +285,5 @@ void NormalFormFinder<Logger>::checkNormalFormEquality(const PseudoNormalForm &n
     Polynomial<capd::Complex> RHS(4, 4, normalForm.phi.degree());
     polynomialComposition(F_reminder, normalForm.phi, RHS);
 
-    log<Diagnostic>("Normal form condition (LHS - RHS):\n", LHS - RHS);
+    log<Debug>("Normal form condition (LHS - RHS):\n", LHS - RHS);
 }
