@@ -106,25 +106,27 @@ void PCR3BP_test()
     CMap f(pcr3bpVectorField, dim, dim, noParam, MAX_DERIVATIVE);
     f.setParameter(0, 0.5); // mu parameter
 
-    CVector p({0, 0, -0.866025, 0}); // L4
+    CVector p({0, 0, 0.866025403784439, 0}); // L4
 
     CMatrix lambda({ 
-        {4.46783, 0, 0, 0}, 
-        {0, -4.46783, 0, 0}, 
-        {0, 0, Complex(0, 2.44161), 0}, 
-        {0, 0, 0, Complex(0, -2.44161)} });
+        {Complex(0.632075, 0.94843), 0, 0, 0}, 
+        {0, Complex(-0.632075, -0.94843), 0, 0}, 
+        {0, 0, Complex(0.632075, -0.94843), 0}, 
+        {0, 0, 0, Complex(-0.632075, 0.94843)} });
 
     CMatrix J({ 
-        {0.655789, 0.17235, -0.0894944, 0.0571208} ,
-        {0.655789, -0.17235, 0.0894944, 0.0571208}, 
-        {-0.655789, Complex(0, -0.0941873), Complex(0, 1.26971), 0.442879},
-        {-0.655789, Complex(0, 0.0941873), Complex(0, -1.26971), 0.442879} });
+        {Complex(-0.677045, -0.120902), Complex(0, 1.56774), Complex(-0.417702, -0.958065), Complex(-0.660842, 0.440414)},
+        {Complex(0.677045, 0.120902), Complex(0, 1.56774), Complex(-0.417702, -0.958065), Complex(0.660842, -0.440414)},
+        {Complex(-0.677045, 0.120902), Complex(0, -1.56774), Complex(-0.417702, 0.958065), Complex(-0.660842, -0.440414)},
+        {Complex(0.677045, -0.120902), Complex(0, -1.56774), Complex(-0.417702, 0.958065), Complex(0.660842, 0.440414)} 
+    });
 
     CMatrix invJ({ 
-        {0.67534, 0.67534, -0.0871, -0.0871}, 
-        {3.0173, -3.0173, Complex(0, -0.21267), Complex(0, 0.21267)}, 
-        {0.22382, -0.22382, Complex(0, -0.40957), Complex(0, 0.40957)}, 
-        {1, 1, 1, 1} });
+        {Complex(-0.29122, 0.436975), Complex(0.29122, -0.436975), Complex(-0.29122, -0.436975), Complex(0.29122, 0.436975)},
+        {Complex(-0.365758, -0.159465), Complex(-0.365758, -0.159465), Complex(-0.365758, 0.159465), Complex(-0.365758, 0.159465)},
+        {-0.598513, -0.598513, -0.598513, -0.598513},
+        {Complex(-0.0799453, -0.44769), Complex(0.0799453, 0.44769), Complex(-0.0799453, 0.44769), Complex(0.0799453, -0.44769)}
+    });
 
     NormalFormFinder<LOGGER> finder(METHOD_DEGREE, f, p, lambda, J, invJ);
     PseudoNormalForm normalForm = finder.calculatePseudoNormalForm();
@@ -132,7 +134,7 @@ void PCR3BP_test()
 
 int main()
 {
-    diagonal_matrix_test();
+    // diagonal_matrix_test();
     // henon_heiles_test();
     PCR3BP_test();
 

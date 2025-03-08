@@ -18,10 +18,10 @@ class NormalFormFinder
         // DF = lambda = J Df J^-1
         // where:
         // * f(p) = 0, it implies F(0) = 0
-        // * lambda a diagonal matrix of form:  lambda1     0           0           0
-        //                                      0           -lambda1    0           0
-        //                                      0           0           lambda2     0
-        //                                      0           0           0           -lambda2
+        // * lambda - a diagonal matrix of form:    lambda1     0           0           0
+        //                                          0           -lambda1    0           0
+        //                                          0           0           lambda2     0
+        //                                          0           0           0           -lambda2
         const CMap f;
         const CVector p;
         const CMatrix J;
