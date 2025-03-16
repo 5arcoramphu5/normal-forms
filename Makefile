@@ -1,5 +1,5 @@
 # a list of all the programs in your package
-PROGS = main
+PROGS = example
 
 # a list of all your units to be linked with your programs
 OTHERS = source/NormalFormFinder/helperFunctions
@@ -23,7 +23,7 @@ all: ${PROGS}
 
 # rule to link executables
 ${PROGS}: % : ${OBJDIR}%.o ${OTHERS_OBJ}
-	${CXX} -o $@ $< ${OTHERS_OBJ} ${CAPDLIBS}
+	${CXX} -o $@.exe $< ${OTHERS_OBJ} ${CAPDLIBS}
 
 # include files with dependencies
 -include ${OBJ_FILES:%=%.d}

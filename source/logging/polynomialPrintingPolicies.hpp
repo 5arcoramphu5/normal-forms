@@ -15,17 +15,20 @@ struct SymbolicPolynomialPrinting {
 
     template<ArithmeticType Coeff>
     static std::string polyToString(const Polynomial<Coeff> &p, double precisionMargin = 0)
-    { return toString(p, defaultVars, precisionMargin); }
+    { return toString(p, defaultVars, precisionMargin);}
 };
-
-template<ArithmeticType Coeff>
-std::string toCoefficientString(Polynomial<Coeff> polynomial, double precisionMargin = 0);
 
 struct CoefficientPolynomialPrinting {
 
     template<ArithmeticType Coeff>
-    static std::string polyToString(const Polynomial<Coeff> &p, double precisionMargin = 0)
-    { return toCoefficientString(p, precisionMargin); }
+    static std::string polyToString(const Polynomial<Coeff> &p, double precisionMargin = 0);
+};
+
+// only for capd::fields::Complex<T>
+struct MathematicaFormatPolynomialPrinting {
+
+    template<ArithmeticType Coeff>
+    static std::string polyToString(const Polynomial<Coeff> &p, double precisionMargin = 0);
 };
 
 #include "polynomialPrintingPolicies.tpp"

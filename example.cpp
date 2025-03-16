@@ -11,7 +11,7 @@ using capd::autodiff::Node;
 
 #define LOGGER Logger<Diagnostic, SymbolicPolynomialPrinting, 13>
 
-void diagonal_matrix_test()
+PseudoNormalForm diagonal_matrix_test()
 {
     CMap f(
         "par: p1, p2, p3, p4, a1, a2, a3;"
@@ -37,46 +37,7 @@ void diagonal_matrix_test()
     CMatrix invJ({ {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1} });
 
     NormalFormFinder<LOGGER> finder(METHOD_DEGREE, f, p, lambda, J, invJ);
-    PseudoNormalForm normalForm = finder.calculatePseudoNormalForm();
-}
-
-void henon_heiles_test()
-{
-    CMap f(
-        "par: a1, lambda;"
-        "var: x1, x2, x3, x4;"
-        "fun:"
-            "x2,"
-            "-x1 - a1*lambda*x1*x3,"
-            "x4,"
-            "-x3 - lambda*(x1^2 - x3^2);", 
-        MAX_DERIVATIVE);
-
-    f.setParameter("a1", 2);
-    f.setParameter("lambda", 1);
-
-    CMatrix lambda({ 
-        {Complex(0, 1), 0, 0, 0}, 
-        {0, Complex(0, -1), 0, 0}, 
-        {0, 0, Complex(0, 1), 0}, 
-        {0, 0, 0, Complex(0, -1)} });
-
-    CMatrix J({ 
-        {Complex(0, 0.5), Complex(0.5, 0), 0, 0} ,
-        {Complex(0, -0.5), Complex(0.5, 0), 0, 0}, 
-        {0, 0, Complex(0, 0.5), Complex(0.5, 0)},
-        {0, 0, Complex(0, -0.5), Complex(0.5, 0)} });
-
-    CMatrix invJ({ 
-        {Complex(0, -1), Complex(0, 1), 0, 0}, 
-        {1, 1, 0, 0}, 
-        {0, 0, Complex(0, -1), Complex(0, 1)}, 
-        {0, 0, 1, 1} });
-
-    CVector p({0, 0, 0, 0});
-
-    NormalFormFinder<LOGGER> finder(METHOD_DEGREE, f, p, lambda, J, invJ);
-    PseudoNormalForm normalForm = finder.calculatePseudoNormalForm();
+    return finder.calculatePseudoNormalForm();
 }
 
 void pcr3bpVectorField(Node /*t*/, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node params[], int /*noParams*/)
@@ -99,8 +60,8 @@ void pcr3bpVectorField(Node /*t*/, Node in[], int /*dimIn*/, Node out[], int /*d
     out[3] = in[2]*(1 - factor1 - factor2) - 2*in[1];
 }
 
-// not working because of CAPD sqrt
-void PCR3BP_test() 
+// may not work because of CAPD sqrt
+PseudoNormalForm PCR3BP_test() 
 {
     int dim=4, noParam=1;
     CMap f(pcr3bpVectorField, dim, dim, noParam, MAX_DERIVATIVE);
@@ -129,14 +90,14 @@ void PCR3BP_test()
     });
 
     NormalFormFinder<LOGGER> finder(METHOD_DEGREE, f, p, lambda, J, invJ);
-    PseudoNormalForm normalForm = finder.calculatePseudoNormalForm();
+    return finder.calculatePseudoNormalForm();
 }
 
 int main()
 {
-    // diagonal_matrix_test();
-    // henon_heiles_test();
-    PCR3BP_test();
+    // auto result = diagonal_matrix_test();
+    // auto result = henon_heiles_test();
+    auto result = PCR3BP_test();
 
     return 0;
 }

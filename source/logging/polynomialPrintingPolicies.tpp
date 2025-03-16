@@ -61,8 +61,9 @@ std::string toString(Polynomial<Coeff> polynomial, const std::string vars[], dou
     return result;
 }
 
-template<ArithmeticType Coeff>
-std::string toCoefficientString(Polynomial<Coeff> polynomial, double precisionMargin)
+
+template <ArithmeticType Coeff>
+inline std::string CoefficientPolynomialPrinting::polyToString(const Polynomial<Coeff> &polynomial, double precisionMargin)
 {
     std::stringstream result;
     result << "{\n";
@@ -88,4 +89,64 @@ std::string toCoefficientString(Polynomial<Coeff> polynomial, double precisionMa
     result << "}";
 
     return result.str();
+}
+
+template<typename T>
+std::string mathematicaFormat(capd::fields::Complex<T> c, double precisionMargin)
+{
+    std::stringstream result;
+    result << "(" << round(c.real(), precisionMargin) << " + " << round(c.imag(), precisionMargin) << "I)"; 
+    return result.str();
+}
+
+template <ArithmeticType Coeff>
+inline std::string MathematicaFormatPolynomialPrinting::polyToString(const Polynomial<Coeff> &polynomial, double precisionMargin)
+{
+    const capd::Multiindex zero(polynomial.dimension());
+
+    std::string result = "\t";
+
+    for(int i = 0; i < polynomial.imageDimension(); ++i)
+    {
+        std::stringstream ss;
+        for(int deg = 0; deg <= polynomial.degree(); ++deg)
+        {
+            capd::Multiindex index(polynomial.dimension());
+            index[0] = deg;
+
+            do
+            {
+                Coeff coeff = polynomial(i, index);
+                coeff = round(coeff, precisionMargin);
+                std::string coeffStr = mathematicaFormat(coeff, precisionMargin);
+                if(coeff != (Coeff)0)
+                {
+                    if(index != zero)
+                    {
+                        if(coeff != (Coeff)1)
+                        {
+                            if(coeff == (Coeff)-1) ss << "-";
+                            else ss << coeffStr << " ";
+                        }
+                    }
+                    else ss << coeffStr << " ";
+                    
+                    for(int j = 0; j < 4; ++j)
+                        if(index[j] > 0) ss << defaultVars[j] << (index[j] == 1 ? "" : "^"+std::to_string(index[j])) << " ";
+
+                    ss << " + ";
+                }
+            }while(index.hasNext());
+        }
+
+        std::string str = ss.str();
+        if(str.length() == 0)
+            str = "0";
+        else 
+            str = str.substr(0, str.length()-3);
+
+        result += str + (i == polynomial.imageDimension()-1 ? "" : ",") + "\n\t";
+    }
+
+    return result;
 }
