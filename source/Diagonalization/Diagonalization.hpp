@@ -15,13 +15,14 @@ class Diagonalization
     public:
         const Matrix<Coeff> lambda;
 
-        Diagonalization(MapFunction f, const Vector<Coeff> &p, const Matrix<Coeff> &J, const Matrix<Coeff> &invJ, const Matrix<Coeff> &lambda, int maxDerivative);
+        Diagonalization(MapFunction f, int noParams, const Vector<Coeff> &p, const Matrix<Coeff> &J, const Matrix<Coeff> &invJ, const Matrix<Coeff> &lambda, int maxDerivative);
 
         Polynomial<Coeff> getDiagonalizedTaylorSeries(int degree) const;
 
         Vector<Coeff> toDiag(const Vector<Coeff> &vector);
-
         Vector<Coeff> toOriginal(const Vector<Coeff> &vector);
+
+        void setParameter(int index, Coeff value);
 
     private:
 
@@ -30,11 +31,12 @@ class Diagonalization
         const Matrix<Coeff> J;
         const Matrix<Coeff> invJ;
         const int maxDerivative;
+        int noParams;
 
         Map<Coeff> diagonalizedF;
 
         // function f(p + invJ*x) that can be used in capd::map::Map<...> 
-        static void functionWithSubstitution(MapFunction f, capd::autodiff::Node t, capd::autodiff::Node in[], int dimIn, capd::autodiff::Node out[], int dimOut, capd::autodiff::Node params[], int noParams);
+        static void functionWithSubstitution(MapFunction f, int noParams, capd::autodiff::Node t, capd::autodiff::Node in[], int dimIn, capd::autodiff::Node out[], int dimOut, capd::autodiff::Node params[], int noParamsInner);
 };
 
 #include "Diagonalization.tpp"

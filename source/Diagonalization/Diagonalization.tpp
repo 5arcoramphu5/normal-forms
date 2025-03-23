@@ -1,20 +1,18 @@
 #include "Diagonalization.hpp"
 
 template <ArithmeticType Coeff>
-Diagonalization<Coeff>::Diagonalization(MapFunction f, const Vector<Coeff> &p, const Matrix<Coeff> &J, const Matrix<Coeff> &invJ, const Matrix<Coeff> &lambda, int maxDerivative) 
-    : f(f), p(p), J(J), invJ(invJ), lambda(lambda), maxDerivative(maxDerivative), 
+Diagonalization<Coeff>::Diagonalization(MapFunction f, int noParams, const Vector<Coeff> &p, const Matrix<Coeff> &J, const Matrix<Coeff> &invJ, const Matrix<Coeff> &lambda, int maxDerivative) 
+    : f(f), p(p), J(J), invJ(invJ), lambda(lambda), maxDerivative(maxDerivative), noParams(noParams),
     diagonalizedF(
-        [f](capd::autodiff::Node t, capd::autodiff::Node in[], int dimIn, capd::autodiff::Node out[], int dimOut, capd::autodiff::Node params[], int noParams){
-            functionWithSubstitution(f, t, in, dimIn, out, dimOut, params, noParams);
+        [f, noParams](capd::autodiff::Node t, capd::autodiff::Node in[], int dimIn, capd::autodiff::Node out[], int dimOut, capd::autodiff::Node params[], int n){
+            functionWithSubstitution(f, noParams, t, in, dimIn, out, dimOut, params, n);
         }, 
-        4, 4, /* TODO */ 21, maxDerivative)
+        4, 4, noParams+20, maxDerivative)
 {
-    diagonalizedF.setParameter(0, 0.5); // TODO: delete, mu
-
     for(int i = 0; i < 4; ++i)
-        diagonalizedF.setParameter(i+1, p[i]);
+        diagonalizedF.setParameter(noParams+i, p[i]);
     
-    int i = 5;
+    int i = noParams+4;
     for(int x = 0; x < 4; ++x)
         for(int y = 0; y < 4; ++y)
         {
@@ -33,17 +31,17 @@ inline Polynomial<Coeff> Diagonalization<Coeff>::getDiagonalizedTaylorSeries(int
 }
 
 template <ArithmeticType Coeff>
-void Diagonalization<Coeff>::functionWithSubstitution(MapFunction f, capd::autodiff::Node t, capd::autodiff::Node in[], int dimIn, capd::autodiff::Node out[], int dimOut, capd::autodiff::Node params[], int noParams)
+void Diagonalization<Coeff>::functionWithSubstitution(MapFunction f, int noParams, capd::autodiff::Node t, capd::autodiff::Node in[], int /*dimIn*/, capd::autodiff::Node out[], int /*dimOut*/, capd::autodiff::Node params[], int /*noParamsInner*/)
 {
-    // params 0 - mu // TODO: other parameters
-    // params 1-4 - point p
-    // params 5-20 - invJ
+    // params 0 - noParams-1 - parameters of f
+    // params noParams - noParams+3 - point p
+    // params noParams+4 - noParams+19 - invJ
     capd::autodiff::Node newIn[4]; // p + invJ*in
-    newIn[0] = params[1] + params[5] * in[0] + params[6] * in[1] + params[7] * in[2] + params[8] * in[3];
-    newIn[1] = params[2] + params[9] * in[0] + params[10] * in[1] + params[11] * in[2] + params[12] * in[3];
-    newIn[2] = params[3] + params[13] * in[0] + params[14] * in[1] + params[15] * in[2] + params[16] * in[3];
-    newIn[3] = params[4] + params[17] * in[0] + params[18] * in[1] + params[19] * in[2] + params[20] * in[3];
-    f(t, newIn, 4, out, 4, params, 1);
+    newIn[0] = params[noParams] + params[noParams+4] * in[0] + params[noParams+5] * in[1] + params[noParams+6] * in[2] + params[noParams+7] * in[3];
+    newIn[1] = params[noParams+1] + params[noParams+8] * in[0] + params[noParams+9] * in[1] + params[noParams+10] * in[2] + params[noParams+11] * in[3];
+    newIn[2] = params[noParams+2] + params[noParams+12] * in[0] + params[noParams+13] * in[1] + params[noParams+14] * in[2] + params[noParams+15] * in[3];
+    newIn[3] = params[noParams+3] + params[noParams+16] * in[0] + params[noParams+17] * in[1] + params[noParams+18] * in[2] + params[noParams+19] * in[3];
+    f(t, newIn, 4, out, 4, params, noParams);
 }
 
 template <ArithmeticType Coeff>
@@ -56,4 +54,10 @@ template <ArithmeticType Coeff>
 Vector<Coeff> Diagonalization<Coeff>::toOriginal(const Vector<Coeff> &vector)
 {
     return p + invJ * vector;
+}
+
+template <ArithmeticType Coeff>
+void Diagonalization<Coeff>::setParameter(int index, Coeff value)
+{
+    diagonalizedF.setParameter(index, value);
 }

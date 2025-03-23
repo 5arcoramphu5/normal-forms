@@ -159,19 +159,6 @@ void polynomialComposition(const Polynomial<Coeff> &first, const Polynomial<Coef
 }
 
 template<ArithmeticType Coeff>
-void copyToDimension(const Polynomial<Coeff> &source, Polynomial<Coeff> &destination, int dim)
-{
-    for(int deg = 0; deg <= source.degree() && deg <= destination.degree(); ++deg)
-    {
-        capd::Multiindex index({deg, 0});
-        do
-        {
-            destination(dim, index) = source(0, index);
-        }while(index.hasNext());
-    }
-}
-
-template<ArithmeticType Coeff>
 Polynomial<Coeff> taylorSeriesAtPoint(const Map<Coeff> &map, const Vector<Coeff> &point, int degree)
 {
     if(degree == 0) // segmentation fault in CAPD in this case
@@ -186,7 +173,7 @@ Polynomial<Coeff> taylorSeriesAtPoint(const Map<Coeff> &map, const Vector<Coeff>
     return result;
 }
 
-// Taylor series expansion of division of two polynomials C^2 -> C^4, only passed degree coefficients
+// Taylor series expansion of division of two polynomials C^2 -> C^4, filling only coefficients of degree pased as argument
 template<ArithmeticType Coeff>
 Polynomial<Coeff> polynomialDivision(const Polynomial<Coeff> &numerator, const Polynomial<Coeff> &denominator, int degree)
 {
@@ -218,7 +205,11 @@ Polynomial<Coeff> polynomialDivision(const Polynomial<Coeff> &numerator, const P
         Polynomial<Coeff> composition(1, 2, degree);
         polynomialComposition(divisionTaylor, p, composition);
 
-        copyToDimension(composition, result, i);
+        capd::Multiindex index({degree, 0});
+        do
+        {
+            result(i, index) = composition(0, index);
+        }while(index.hasNext());
     }
 
     return result;
