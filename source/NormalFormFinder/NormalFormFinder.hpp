@@ -3,6 +3,7 @@
 #include "../typedefs.h"
 #include "../logging/logging.hpp"
 #include "../containers/Polynomial.hpp"
+#include "../Diagonalization/Diagonalization.hpp"
 #include "PseudoNormalForm.h"
 
 template<LoggerType Logger = Logger<VerbosityLevel::None>>
@@ -22,11 +23,7 @@ class NormalFormFinder
         //                                          0           -lambda1    0           0
         //                                          0           0           lambda2     0
         //                                          0           0           0           -lambda2
-        const CMap f;
-        const CVector p;
-        const CMatrix J;
-        const CMatrix invJ;
-        const CMatrix lambda;
+        const Diagonalization<capd::Complex> diagonalization;
 
         // variables used in computations:
         Polynomial<capd::Complex> F_taylorSeries;
@@ -62,7 +59,7 @@ class NormalFormFinder
         }
 
     public:
-        NormalFormFinder(int _degree, const CMap &_f, const CVector &fixedPoint, const CMatrix &diagonalDerivative, const CMatrix &diagonalizationMatrix, const CMatrix diagonalizationMatrixInverse);
+        NormalFormFinder(int _degree, const Diagonalization<capd::Complex> &diagonalization);
 
         PseudoNormalForm calculatePseudoNormalForm();
 };

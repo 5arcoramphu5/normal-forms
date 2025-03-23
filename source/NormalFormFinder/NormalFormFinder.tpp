@@ -13,36 +13,26 @@
 #include <vector>
 
 template<LoggerType Logger>
-NormalFormFinder<Logger>::NormalFormFinder(int _degree, const CMap &_f, const CVector &fixedPoint, const CMatrix &diagonalDerivative, const CMatrix &diagonalizationMatrix, const CMatrix diagonalizationMatrixInverse)
-    : degree(_degree), f(_f), p(fixedPoint), lambda(diagonalDerivative), J(diagonalizationMatrix), invJ(diagonalizationMatrixInverse)
-{
-    if(f.dimension() != 4 || f.imageDimension() != 4)
-        throw std::runtime_error("Dimensions not supported.");
-}
+NormalFormFinder<Logger>::NormalFormFinder(int _degree, const Diagonalization<capd::Complex> &diagonalization)
+    : degree(_degree), diagonalization(diagonalization), iterations(0)
+    {}
 
 template<LoggerType Logger>
 PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
 {
-    Polynomial<capd::Complex> f_taylorSeries = getTaylorSeries(f, degree+1);
-    
-    auto invJ_P = toPolynomial(invJ, p, degree+1); // F(X) = J f(p + J^-1 X)
-    F_taylorSeries = Polynomial<capd::Complex>(4, 4, invJ_P.degree() * f_taylorSeries.degree());
-    polynomialComposition(f_taylorSeries, invJ_P, F_taylorSeries);
-    F_taylorSeries = J * F_taylorSeries;
-
+    F_taylorSeries = diagonalization.getDiagonalizedTaylorSeries(degree+1);
     log<Debug>("F:\n", F_taylorSeries);
 
     F_reminder = F_taylorSeries.fromToDegree(2, degree+1);
-    log<Debug>("F reminder:\n", F_reminder);
 
-    PointType pointType = getPointType(lambda, lambda1, lambda2);
+    PointType pointType = getPointType(diagonalization.lambda, lambda1, lambda2);
     if(pointType == PointType::Unsupported)
         throw std::runtime_error("Type of equilibrium point not supported.");
         
     if(pointType == PointType::SaddleCenter) // TODO: to be deleted
         throw std::runtime_error("Case not implemented yet.");
 
-    log<Debug>("lambda:\n", lambda);
+    log<Debug>("lambda:\n", diagonalization.lambda);
     log<Debug>("lambda1, lambda2: ", lambda1, lambda2);
 
     log<Diagnostic>("Point type: ", pointType, "\n");
@@ -78,7 +68,7 @@ PseudoNormalForm NormalFormFinder<Logger>::getInitialNormalFormValues()
         indexArr[i] = 1;
         
         normalForm.phi(i, capd::Multiindex(4, indexArr)) = 1; // Phi(1) = Id
-        normalForm.n(i, capd::Multiindex(4, indexArr)) = lambda[i][i]; // N(1) = linear part (diagonal)
+        normalForm.n(i, capd::Multiindex(4, indexArr)) = diagonalization.lambda[i][i]; // N(1) = linear part (diagonal)
     }
 
     return normalForm;
@@ -109,7 +99,7 @@ void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm)
         this->checkSecondEquation(normalForm.n, normalForm.b, FPhi); 
     } );
 
-    Logger::template enableIf<Debug>( [normalForm, this] () 
+    Logger::template enableIf<Diagnostic>( [normalForm, this] () 
     { 
         this->checkNormalFormEquality(normalForm); 
     } );
@@ -208,7 +198,7 @@ void NormalFormFinder<Logger>::solveFirstEquation(Polynomial<capd::Complex> &Psi
 template <LoggerType Logger>
 void NormalFormFinder<Logger>::checkFirstEquation(const Polynomial<capd::Complex> &Psi, const Polynomial<capd::Complex> &H, const Polynomial<capd::Complex> &N)
 {
-    auto LHS = operatorL(projR(Psi.reminderPart()), N, lambda).fromToDegree(0, iterations+1);
+    auto LHS = operatorL(projR(Psi.reminderPart()), N, diagonalization.lambda).fromToDegree(0, iterations+1);
     auto RHS = projR(H).fromToDegree(0, iterations+1);
     log<Diagnostic>("first equation (LHS - RHS):\n", LHS - RHS);
 }
@@ -283,7 +273,7 @@ void NormalFormFinder<Logger>::checkNormalFormEquality(const PseudoNormalForm &n
 {
     auto LHS = D(normalForm.phi) * normalForm.n + normalForm.b.reminderPart();
     Polynomial<capd::Complex> RHS(4, 4, normalForm.phi.degree());
-    polynomialComposition(F_reminder, normalForm.phi, RHS);
+    polynomialComposition(F_taylorSeries, normalForm.phi, RHS);
 
-    log<Debug>("Normal form condition (LHS - RHS):\n", LHS - RHS);
+    log<Diagnostic>("Normal form condition (LHS - RHS):\n", (LHS - RHS).fromToDegree(0, iterations+1));
 }
