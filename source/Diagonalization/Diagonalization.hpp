@@ -13,7 +13,10 @@ template<ArithmeticType Coeff>
 class Diagonalization
 {
     public:
-        const Matrix<Coeff> lambda;
+
+        Diagonalization();
+        Diagonalization(const Diagonalization &other);
+        Diagonalization& operator=(const Diagonalization& other);  
 
         Diagonalization(MapFunction f, int noParams, const Vector<Coeff> &p, const Matrix<Coeff> &J, const Matrix<Coeff> &invJ, const Matrix<Coeff> &lambda, int maxDerivative);
 
@@ -24,17 +27,24 @@ class Diagonalization
 
         void setParameter(int index, Coeff value);
 
+        inline const Matrix<Coeff>& getLambda() const { return lambda; }
+        inline const Vector<Coeff>& getP() const { return p; }
+        inline const Matrix<Coeff>& getJ() const { return J; }
+        inline const Matrix<Coeff>& getinvJ() const { return invJ; }
+
     private:
 
-        const MapFunction f;
-        const Vector<Coeff> p;
-        const Matrix<Coeff> J;
-        const Matrix<Coeff> invJ;
-        const int maxDerivative;
+        MapFunction f;
+        Vector<Coeff> p;
+        Matrix<Coeff> J;
+        Matrix<Coeff> invJ;
+        int maxDerivative;
         int noParams;
+        Matrix<Coeff> lambda;
 
         Map<Coeff> diagonalizedF;
 
+        void setDiagonalizedFParameters();
         // function f(p + invJ*x) that can be used in capd::map::Map<...> 
         static void functionWithSubstitution(MapFunction f, int noParams, capd::autodiff::Node t, capd::autodiff::Node in[], int dimIn, capd::autodiff::Node out[], int dimOut, capd::autodiff::Node params[], int noParamsInner);
 };

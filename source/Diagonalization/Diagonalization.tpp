@@ -1,6 +1,9 @@
 #include "Diagonalization.hpp"
 
 template <ArithmeticType Coeff>
+Diagonalization<Coeff>::Diagonalization() {}
+
+template <ArithmeticType Coeff>
 Diagonalization<Coeff>::Diagonalization(MapFunction f, int noParams, const Vector<Coeff> &p, const Matrix<Coeff> &J, const Matrix<Coeff> &invJ, const Matrix<Coeff> &lambda, int maxDerivative) 
     : f(f), p(p), J(J), invJ(invJ), lambda(lambda), maxDerivative(maxDerivative), noParams(noParams),
     diagonalizedF(
@@ -8,6 +11,50 @@ Diagonalization<Coeff>::Diagonalization(MapFunction f, int noParams, const Vecto
             functionWithSubstitution(f, noParams, t, in, dimIn, out, dimOut, params, n);
         }, 
         4, 4, noParams+20, maxDerivative)
+{
+    setDiagonalizedFParameters();
+}
+
+template <ArithmeticType Coeff>
+Diagonalization<Coeff>& Diagonalization<Coeff>::operator=(const Diagonalization<Coeff> &other)
+{
+    f = other.f;
+    p = other.p;
+    J = other.J;
+    invJ = other.invJ;
+    lambda = other.lambda;
+    maxDerivative = other.maxDerivative;
+    noParams = other.noParams;
+    diagonalizedF = Map<Coeff>(
+        [this](capd::autodiff::Node t, capd::autodiff::Node in[], int dimIn, capd::autodiff::Node out[], int dimOut, capd::autodiff::Node params[], int n){
+            functionWithSubstitution(this->f, this->noParams, t, in, dimIn, out, dimOut, params, n);
+        }, 
+        4, 4, noParams+20, maxDerivative);
+    diagonalizedF.setDegree(maxDerivative);
+
+    setDiagonalizedFParameters();
+    for(int i = 0; i < noParams; ++i)
+        diagonalizedF.setParameter(i, other.diagonalizedF.getParameter(i));
+
+    return *this;
+}
+
+template <ArithmeticType Coeff>
+Diagonalization<Coeff>::Diagonalization(const Diagonalization &other) 
+    : f(other.f), p(other.p), J(other.J), invJ(other.invJ), lambda(other.lambda), maxDerivative(other.maxDerivative), noParams(other.noParams),
+    diagonalizedF(
+        [this](capd::autodiff::Node t, capd::autodiff::Node in[], int dimIn, capd::autodiff::Node out[], int dimOut, capd::autodiff::Node params[], int n){
+            functionWithSubstitution(this->f, this->noParams, t, in, dimIn, out, dimOut, params, n);
+        }, 
+        4, 4, noParams+20, maxDerivative)
+{
+    setDiagonalizedFParameters();
+    for(int i = 0; i < noParams; ++i)
+        diagonalizedF.setParameter(i, other.diagonalizedF.getParameter(i));
+}
+
+template <ArithmeticType Coeff>
+void Diagonalization<Coeff>::setDiagonalizedFParameters()
 {
     for(int i = 0; i < 4; ++i)
         diagonalizedF.setParameter(noParams+i, p[i]);

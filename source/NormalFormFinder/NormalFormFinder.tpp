@@ -25,17 +25,17 @@ PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
 
     F_reminder = F_taylorSeries.fromToDegree(2, degree+1);
 
-    PointType pointType = getPointType(diagonalization.lambda, lambda1, lambda2);
+    PointType pointType = getPointType(diagonalization.getLambda(), lambda1, lambda2);
     if(pointType == PointType::Unsupported)
         throw std::runtime_error("Type of equilibrium point not supported.");
         
     if(pointType == PointType::SaddleCenter) // TODO: to be deleted
         throw std::runtime_error("Case not implemented yet.");
 
-    log<Debug>("lambda:\n", diagonalization.lambda);
+    log<Debug>("lambda:\n", diagonalization.getLambda());
     log<Debug>("lambda1, lambda2: ", lambda1, lambda2);
 
-    log<Diagnostic>("Point type: ", pointType, "\n");
+    log<Debug>("Point type: ", pointType, "\n");
 
     PseudoNormalForm normalForm = getInitialNormalFormValues();
     setInitialValues();
@@ -68,7 +68,7 @@ PseudoNormalForm NormalFormFinder<Logger>::getInitialNormalFormValues()
         indexArr[i] = 1;
         
         normalForm.phi(i, capd::Multiindex(4, indexArr)) = 1; // Phi(1) = Id
-        normalForm.n(i, capd::Multiindex(4, indexArr)) = diagonalization.lambda[i][i]; // N(1) = linear part (diagonal)
+        normalForm.n(i, capd::Multiindex(4, indexArr)) = diagonalization.getLambda()[i][i]; // N(1) = linear part (diagonal)
     }
 
     return normalForm;
@@ -198,7 +198,7 @@ void NormalFormFinder<Logger>::solveFirstEquation(Polynomial<capd::Complex> &Psi
 template <LoggerType Logger>
 void NormalFormFinder<Logger>::checkFirstEquation(const Polynomial<capd::Complex> &Psi, const Polynomial<capd::Complex> &H, const Polynomial<capd::Complex> &N)
 {
-    auto LHS = operatorL(projR(Psi.reminderPart()), N, diagonalization.lambda).fromToDegree(0, iterations+1);
+    auto LHS = operatorL(projR(Psi.reminderPart()), N, diagonalization.getLambda()).fromToDegree(0, iterations+1);
     auto RHS = projR(H).fromToDegree(0, iterations+1);
     log<Diagnostic>("first equation (LHS - RHS):\n", LHS - RHS);
 }

@@ -7,9 +7,9 @@ using namespace capd;
 using capd::autodiff::Node;
 
 #define MAX_DERIVATIVE 10
-#define METHOD_DEGREE 4
+#define METHOD_DEGREE 5
 
-#define LOGGER Logger<Minimal, SymbolicPolynomialPrinting, 5>
+#define LOGGER Logger<Diagnostic, SymbolicPolynomialPrinting, 5>
 
 void diagonalVectorField(Node /*t*/, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node params[], int /*noParams*/)
 {
