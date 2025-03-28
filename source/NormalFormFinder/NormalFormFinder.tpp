@@ -42,7 +42,7 @@ PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
 
     for(iterations = 1; iterations <= degree; ++iterations)
     {
-        log<Minimal>("--------- iteration:", iterations, "---------");
+        log<ProgressIndication>("--------- iteration:", iterations, "/", degree, "---------");
 
         nextIteration(normalForm);
         
@@ -60,7 +60,7 @@ PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
 template<LoggerType Logger>
 PseudoNormalForm NormalFormFinder<Logger>::getInitialNormalFormValues()
 {
-    PseudoNormalForm normalForm(degree+1, F_taylorSeries);
+    PseudoNormalForm normalForm(degree+1);
 
     for(int i = 0; i < 4; ++i)
     {

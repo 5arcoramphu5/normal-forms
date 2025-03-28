@@ -4,7 +4,7 @@
 #include "../templateUtils.hpp"
 #include "polynomialPrintingPolicies.hpp"
 
-enum VerbosityLevel{None, Minimal, Diagnostic, Debug, Error};
+enum VerbosityLevel{None, ProgressIndication, Minimal, Diagnostic, Debug, Error};
 
 template<typename T>
 concept LoggerType = requires (std::string message) {

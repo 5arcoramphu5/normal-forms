@@ -22,6 +22,10 @@ class Polynomial : public capd::diffAlgebra::Jet<
 
         Polynomial<Coeff> inline reminderPart() const
         { return fromToDegree(2, this->degree()); }
+
+        void serialize(std::ostream &stream) const;
+
+        static Polynomial<Coeff> deserialize(std::istream &stream);
 };
 
 template<ArithmeticType Coeff>

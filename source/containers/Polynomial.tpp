@@ -27,6 +27,48 @@ Polynomial<Coeff> Polynomial<Coeff>::fromToDegree(int degreeFrom, int degreeTo) 
     return result;
 }
 
+template <ArithmeticType Coeff>
+void Polynomial<Coeff>::serialize(std::ostream &stream) const
+{
+    stream << this->degree() << " " << this->dimension() << " " << this->imageDimension() << "\n";
+    for(int i = 0; i < this->imageDimension(); ++i)
+    {
+        for(int deg = 0; deg <= this->degree(); ++deg)
+        {
+            capd::Multiindex index(this->dimension());
+            index[0] = deg;
+            do{
+                stream << (*this)(i, index) << " ";
+            }
+            while(index.hasNext());
+            stream << "\n";
+        }
+    }
+}
+
+template <ArithmeticType Coeff>
+Polynomial<Coeff> Polynomial<Coeff>::deserialize(std::istream &stream)
+{
+    int degree, dim, imDim;
+    stream >> degree >> dim >> imDim;
+    Polynomial<Coeff> poly(imDim, dim, degree);
+
+    for(int i = 0; i < imDim; ++i)
+    {
+        for(int deg = 0; deg <= degree; ++deg)
+        {
+            capd::Multiindex index(dim);
+            index[0] = deg;
+            do{
+                stream >> poly(i, index);
+            }
+            while(index.hasNext());
+        }
+    }
+    return poly;
+}
+
+
 template<ArithmeticType Coeff>
 Polynomial<Coeff> operator+(const Polynomial<Coeff> &p1, const Polynomial<Coeff> &p2)
 {
