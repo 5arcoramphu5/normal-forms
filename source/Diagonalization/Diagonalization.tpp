@@ -108,3 +108,19 @@ void Diagonalization<Coeff>::setParameter(int index, Coeff value)
 {
     diagonalizedF.setParameter(index, value);
 }
+
+template <ArithmeticType Coeff>
+Polynomial<Coeff> Diagonalization<Coeff>::polynomialComposition(const Polynomial<Coeff> &poly) const
+{
+    auto result = diagonalizedF(poly);
+    result = J * result;
+    return result;
+}
+
+template <ArithmeticType Coeff>
+Polynomial<Coeff> Diagonalization<Coeff>::polynomialCompositionWithReminder(const Polynomial<Coeff> &poly) const
+{
+    Vector<Coeff> zero(4);
+    auto linearPart = diagonalizedF.derivative(zero);
+    return polynomialComposition(poly) - J * linearPart * poly;
+}

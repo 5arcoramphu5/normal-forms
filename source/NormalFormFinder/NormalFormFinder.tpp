@@ -83,20 +83,19 @@ void NormalFormFinder<Logger>::setInitialValues()
 
 template<LoggerType Logger>
 void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm)
-{       
-    Polynomial<capd::Complex> FPhi(4, 4, normalForm.phi.degree());
-    polynomialComposition(F_reminder, normalForm.phi, FPhi);
+{
+    auto FremPhi = diagonalization.polynomialCompositionWithReminder(normalForm.phi);
     
-    solveFirstEquation(normalForm.phi, FPhi);
-    Logger::template enableIf<Diagnostic>( [normalForm, FPhi, this] () 
+    solveFirstEquation(normalForm.phi, FremPhi);
+    Logger::template enableIf<Diagnostic>( [normalForm, FremPhi, this] () 
     { 
-        this->checkFirstEquation(normalForm.phi, FPhi, normalForm.n); 
+        this->checkFirstEquation(normalForm.phi, FremPhi, normalForm.n); 
     } );
     
-    solveSecondEquation(normalForm.n, normalForm.b, FPhi);
-    Logger::template enableIf<Diagnostic>( [normalForm, FPhi, this] () 
+    solveSecondEquation(normalForm.n, normalForm.b, FremPhi);
+    Logger::template enableIf<Diagnostic>( [normalForm, FremPhi, this] () 
     { 
-        this->checkSecondEquation(normalForm.n, normalForm.b, FPhi); 
+        this->checkSecondEquation(normalForm.n, normalForm.b, FremPhi); 
     } );
 
     Logger::template enableIf<Diagnostic>( [normalForm, this] () 
@@ -272,8 +271,7 @@ template <LoggerType Logger>
 void NormalFormFinder<Logger>::checkNormalFormEquality(const PseudoNormalForm &normalForm)
 {
     auto LHS = D(normalForm.phi) * normalForm.n + normalForm.b.reminderPart();
-    Polynomial<capd::Complex> RHS(4, 4, normalForm.phi.degree());
-    polynomialComposition(F_taylorSeries, normalForm.phi, RHS);
+    auto RHS = diagonalization.polynomialComposition(normalForm.phi);
 
     log<Diagnostic>("Normal form condition (LHS - RHS):\n", (LHS - RHS).fromToDegree(0, iterations+1));
 }

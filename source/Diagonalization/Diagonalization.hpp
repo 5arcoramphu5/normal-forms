@@ -32,6 +32,9 @@ class Diagonalization
         inline const Matrix<Coeff>& getJ() const { return J; }
         inline const Matrix<Coeff>& getinvJ() const { return invJ; }
 
+        Polynomial<Coeff> polynomialComposition(const Polynomial<Coeff> &poly) const;
+        Polynomial<Coeff> polynomialCompositionWithReminder(const Polynomial<Coeff> &poly) const;
+
     private:
 
         MapFunction f;
