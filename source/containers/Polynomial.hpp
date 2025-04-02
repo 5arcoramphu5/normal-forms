@@ -35,9 +35,6 @@ template<ArithmeticType Coeff>
 Polynomial<Coeff> operator-(const Polynomial<Coeff> &p1, const Polynomial<Coeff> &p2);
 
 template<ArithmeticType Coeff>
-void polynomialComposition(const Polynomial<Coeff> &first, const Polynomial<Coeff> &second, Polynomial<Coeff> &result);
-
-template<ArithmeticType Coeff>
 Polynomial<Coeff> polynomialDivision(const Polynomial<Coeff> &numerator, const Polynomial<Coeff> &denominator, int degree);
 
 template<ArithmeticType Coeff>

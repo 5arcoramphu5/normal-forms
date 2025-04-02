@@ -262,7 +262,7 @@ void NormalFormFinder<Logger>::solveSecondEquation(Polynomial<capd::Complex> &N,
 template <LoggerType Logger>
 void NormalFormFinder<Logger>::checkSecondEquation(const Polynomial<capd::Complex> &N, const Polynomial<capd::Complex> &B, const Polynomial<capd::Complex> &H)
 {
-    auto LHS = (N.reminderPart() + B.reminderPart()).fromToDegree(0, iterations+1);
+    auto LHS = (N.reminderPart() + B).fromToDegree(0, iterations+1);
     auto RHS = projP(H).fromToDegree(0, iterations+1);
     log<Diagnostic>("second equation (LHS - RHS):\n", LHS - RHS);
 }

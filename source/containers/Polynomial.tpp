@@ -72,12 +72,16 @@ Polynomial<Coeff> Polynomial<Coeff>::deserialize(std::istream &stream)
 template<ArithmeticType Coeff>
 Polynomial<Coeff> operator+(const Polynomial<Coeff> &p1, const Polynomial<Coeff> &p2)
 {
+    if(p1.dimension() != p2.dimension() || p1.imageDimension() != p2.imageDimension())
+        throw std::runtime_error("invalid polynomial dimensions");
+
     int resultDegree = std::max(p1.degree(), p2.degree());
     Polynomial<Coeff> result(4, 4, resultDegree);
 
     for(int deg = 0; deg <= resultDegree; ++deg)
     {
-        capd::Multiindex index({deg, 0, 0, 0});
+        capd::Multiindex index(p1.dimension());
+        index[0] = deg;
         do
         {
             for(int i = 0; i < 4; ++i)
@@ -96,12 +100,16 @@ Polynomial<Coeff> operator+(const Polynomial<Coeff> &p1, const Polynomial<Coeff>
 template<ArithmeticType Coeff>
 Polynomial<Coeff> operator-(const Polynomial<Coeff> &p1, const Polynomial<Coeff> &p2)
 {
+    if(p1.dimension() != p2.dimension() || p1.imageDimension() != p2.imageDimension())
+        throw std::runtime_error("invalid polynomial dimensions");
+
     int resultDegree = std::max(p1.degree(), p2.degree());
-    Polynomial<Coeff> result(4, 4, resultDegree);
+    Polynomial<Coeff> result(p1.imageDimension(), p1.dimension(), resultDegree);
 
     for(int deg = 0; deg <= resultDegree; ++deg)
     {
-        capd::Multiindex index({deg, 0, 0, 0});
+        capd::Multiindex index(p1.dimension());
+        index[0] = deg;
         do
         {
             for(int i = 0; i < 4; ++i)
@@ -117,115 +125,18 @@ Polynomial<Coeff> operator-(const Polynomial<Coeff> &p1, const Polynomial<Coeff>
     return result;
 }
 
-template<ArithmeticType Coeff>
-Coeff compositionProduct(const Polynomial<Coeff> &second, const capd::Multiindex& mi, const capd::Multipointer& a, int p, int k)
-{
-    Coeff result = 0;
-    const auto is = capd::Multipointer::generateList(p,k);
-
-    auto e = is.end();
-    for(auto b = is.begin(); b != e; ++b)
-    {
-        auto bt = b->begin(), et = b->end();
-        auto ib = mi.begin();
-
-        capd::Multipointer delta = a.subMultipointer(*bt);
-
-        if(delta.dimension() > second.degree())
-            continue;
-
-        Coeff temp = second(*ib,delta) * Coeff(delta.factorial(), 0);
-        ++bt;
-        ++ib;
-
-        for( ; bt != et; ++bt)
-        {
-            capd::Multipointer delta = a.subMultipointer(*bt);
-
-            if(delta.dimension() > second.degree())
-            {
-                temp = 0;
-                break;
-            }
-
-            temp *= second(*ib,delta) * Coeff(delta.factorial(), 0);
-            ++ib;
-        }
-
-        result += temp;
-    }
-
-    return result;
-}
-
-template<ArithmeticType Coeff>
-void composition(const Polynomial<Coeff> &first, const Polynomial<Coeff> &second, Polynomial<Coeff> &result, const capd::Multipointer& a)
-{
-    typename capd::Multiindex::IndicesSet listIndices;
-    capd::Multiindex::generateList(result.dimension(), result.degree(), listIndices);
-
-    int p = a.module();
-
-    result(a).clear();
-    int minK = 1;
-    for(int k = minK; k <= p; ++k)
-    {
-        auto e = listIndices[k-1].end();
-        for(auto b = listIndices[k-1].begin(); b != e; ++b)
-        {
-            capd::Multipointer mp(b->dimension(),b->begin());
-
-            std::sort(mp.begin(),mp.end());
-            auto product = compositionProduct(second, *b, a, p, k);
-            result(a) += first(mp) * product * (Coeff)mp.factorial();
-        }
-    }
-
-    result(a) /= (Coeff)a.factorial();
-}
-
-// modified version of substitutionPowerSeries(...), should work for second.degree() < first.degree()
-template<ArithmeticType Coeff>
-void polynomialComposition(const Polynomial<Coeff> &first, const Polynomial<Coeff> &second, Polynomial<Coeff> &result)
-{
-    for(unsigned i=1;i<=first.degree();++i)
-    {
-        capd::Multipointer a = first.first(i);
-        do
-        {
-            composition(first, second, result, a);
-        }
-        while(first.hasNext(a));
-    }
-    result() = first();
-}
-
-template<ArithmeticType Coeff>
-Polynomial<Coeff> taylorSeriesAtPoint(const Map<Coeff> &map, const Vector<Coeff> &point, int degree)
-{
-    if(degree == 0) // segmentation fault in CAPD in this case
-    {
-        Polynomial<Coeff> result(map.imageDimension(), map.dimension(), 0);
-        result(capd::Multiindex(map.imageDimension())) = map(point);
-        return result;
-    }
-
-    Polynomial<Coeff> result(map.imageDimension(), map.dimension(), degree);
-    map(point, result);
-    return result;
-}
-
 // Taylor series expansion of division of two polynomials C^2 -> C^4, filling only coefficients of degree pased as argument
 template<ArithmeticType Coeff>
 Polynomial<Coeff> polynomialDivision(const Polynomial<Coeff> &numerator, const Polynomial<Coeff> &denominator, int degree)
 {
+    int polyDeg = numerator.degree();
+
     // Taylor expansion of x/y function
     Map<Coeff> division(
         "var: x, y; "
         "fun: x/y;",
-        degree);
+        polyDeg);
 
-    int polyDeg = numerator.degree();
     Polynomial<Coeff> result(4, 2, degree);
 
     for(int i = 0; i < 4; ++i)
@@ -241,11 +152,7 @@ Polynomial<Coeff> polynomialDivision(const Polynomial<Coeff> &numerator, const P
             }while(index.hasNext());
         }
 
-        capd::Multiindex zero({0, 0});
-        auto divisionTaylor = taylorSeriesAtPoint(division, {numerator(i, zero), denominator(i, zero)}, degree);
-
-        Polynomial<Coeff> composition(1, 2, degree);
-        polynomialComposition(divisionTaylor, p, composition);
+        Polynomial<Coeff> composition = division(p);
 
         capd::Multiindex index({degree, 0});
         do
