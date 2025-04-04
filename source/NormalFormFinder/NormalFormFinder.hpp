@@ -26,25 +26,18 @@ class NormalFormFinder
         const Diagonalization<capd::Complex> diagonalization;
 
         // variables used in computations:
-        Polynomial<capd::Complex> F_taylorSeries;
-        Polynomial<capd::Complex> F_reminder;
         capd::Complex lambda1, lambda2;
-
-        Polynomial<capd::Complex> a1_reminder;
-        Polynomial<capd::Complex> a2_reminder;
-
         int iterations;
 
         PseudoNormalForm getInitialNormalFormValues();
-        void setInitialValues();
         void nextIteration(PseudoNormalForm &normalForm);
 
         PointType getPointType(const CMatrix &diagonalMatrix, capd::Complex &lambda1, capd::Complex &lambda2);
 
         // solves equation of type: L(R(Psi)) = R(H)
-        void solveFirstEquation(Polynomial<capd::Complex> &Psi, const Polynomial<capd::Complex> &H);
+        void solveFirstEquation(Polynomial<capd::Complex> &Psi, const Polynomial<capd::Complex> &a1, const Polynomial<capd::Complex> &a2, const Polynomial<capd::Complex> &H);
         // solves equation of type: N + B = P(H)
-        void solveSecondEquation(Polynomial<capd::Complex> &N, Polynomial<capd::Complex> &B, const Polynomial<capd::Complex> &H);
+        void solveSecondEquation(Polynomial<capd::Complex> &N, Polynomial<capd::Complex> &B, Polynomial<capd::Complex> &a1, Polynomial<capd::Complex> &a2, const Polynomial<capd::Complex> &H);
 
         void checkFirstEquation(const Polynomial<capd::Complex> &Psi, const Polynomial<capd::Complex> &H, const Polynomial<capd::Complex> &N);
 
