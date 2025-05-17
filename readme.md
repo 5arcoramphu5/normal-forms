@@ -1,0 +1,3 @@
+# **Pseudo-normal form of a dynamical system**
+
+This repository contains an implementation of an algorithm for calculating the pseudo-normal form of a 4-dimensional dynamical system near a saddle-focus equilibrium point. The algorithm was described in ["Pseudo-normal form near saddle-center or saddle-focus equilibria"](https://www.researchgate.net/publication/222519370_Pseudo-normal_form_near_saddle-center_or_saddle-focus_equilibria) by A. Delshams and J. T. Lázaro as a constructive proof. The pseudo-normal defined in the paper is a generalization of the normal form around an equilibrium. 
