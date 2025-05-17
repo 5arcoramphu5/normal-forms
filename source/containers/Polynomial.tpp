@@ -127,63 +127,44 @@ Polynomial<Coeff> operator-(const Polynomial<Coeff> &p1, const Polynomial<Coeff>
 
 // Taylor series expansion of division of two polynomials C^2 -> C^4, filling only coefficients of degree pased as argument
 template<ArithmeticType Coeff>
-Polynomial<Coeff> polynomialDivision(const Polynomial<Coeff> &numerator, const Polynomial<Coeff> &denominator, int degree)
+Polynomial<Coeff> polynomialDivision(const Polynomial<Coeff> &numerator, const Polynomial<Coeff> &denominator, int upToDegree)
 {
-    int polyDeg = numerator.degree();
-
     // Taylor expansion of x/y function
     Map<Coeff> division(
         "var: x, y; "
         "fun: x/y;",
-        polyDeg);
+        upToDegree);
 
-    Polynomial<Coeff> result(4, 2, degree);
+    Polynomial<Coeff> result(4, 2, upToDegree);
 
     for(int i = 0; i < 4; ++i)
     {
-        Polynomial<Coeff> p(2, 2, polyDeg);
-        for(int deg = 0; deg <= polyDeg; ++deg)
+        Polynomial<Coeff> p(2, 2, upToDegree);
+
+        for(int deg = 0; deg <= numerator.degree() && deg <= upToDegree; ++deg)
         {
             capd::Multiindex index({deg, 0});
             do
             {
                 p(0, index) = numerator(i, index);
+            }while(index.hasNext());
+        }
+
+        for(int deg = 0; deg <= denominator.degree() && deg <= upToDegree; ++deg)
+        {
+            capd::Multiindex index({deg, 0});
+            do
+            {
                 p(1, index) = denominator(i, index);
             }while(index.hasNext());
         }
 
         Polynomial<Coeff> composition = division(p);
-
-        capd::Multiindex index({degree, 0});
+        capd::Multiindex index({upToDegree, 0});
         do
         {
             result(i, index) = composition(0, index);
         }while(index.hasNext());
-    }
-
-    return result;
-}
-
-template<ArithmeticType Coeff>
-Polynomial<Coeff> toPolynomial(const capd::vectalg::Matrix<Coeff, 0, 0> &linearPart, const capd::vectalg::Vector<Coeff, 0> &constant, int degree)
-{
-    auto dim = linearPart.dimension();
-    if(constant.dimension() != dim.first)
-        throw std::runtime_error("invalid dimensions of matrix and vector");
-
-    Polynomial<Coeff> result(dim.first, dim.second, 1);
-    
-    for(int i = 0; i < dim.first; ++i)
-    {
-        for(int j = 0; j < dim.second; ++j)
-        {
-            capd::Multiindex index(dim.second);
-            index[j] = 1;
-
-            result(i, index) = linearPart[i][j];
-        }
-
-        result(i, capd::Multiindex(dim.second)) = constant[i];
     }
 
     return result;

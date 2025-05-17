@@ -19,7 +19,7 @@ class Logger
     template<VerbosityLevel MessageVerbosity>
     static void log() 
     { 
-        invokeIf<Verbosity >= MessageVerbosity>::template invoke([]()
+        invokeIf<Verbosity >= MessageVerbosity>::invoke([]()
         { std::cout << std::endl; });
     }
 
@@ -28,7 +28,7 @@ class Logger
     {
         static_assert(MessageVerbosity != None, "cannot log message with verbosity None");
 
-        invokeIf<Verbosity >= MessageVerbosity>::template invoke([message, messages...]()
+        invokeIf<Verbosity >= MessageVerbosity>::invoke([message, messages...]()
         {
             std::cout << message << " ";
             log<MessageVerbosity>(messages...);
@@ -40,7 +40,7 @@ class Logger
     {
         static_assert(MessageVerbosity != None, "cannot log message with verbosity None");
 
-        invokeIf<Verbosity >= MessageVerbosity>::template invoke([polynomial, messages...]()
+        invokeIf<Verbosity >= MessageVerbosity>::invoke([polynomial, messages...]()
         {
             std::cout << PolynomialPrinting::polyToString(polynomial, Precision == -1 ? 0 : std::pow(10, -Precision)) << " ";
             log<MessageVerbosity>(messages...);
@@ -51,7 +51,7 @@ class Logger
     template<VerbosityLevel EnablingVerbosity, Invokable FunctionType>
     static inline void enableIf(const FunctionType &function)
     { 
-        invokeIf<Verbosity >= EnablingVerbosity>::template invoke(function);
+        invokeIf<Verbosity >= EnablingVerbosity>::invoke(function);
     }
 
 };

@@ -5,13 +5,6 @@
 using namespace capd;
 using namespace std;
 
-Polynomial<Complex> getTaylorSeries(const CMap &function, int degree)
-{
-    CJet taylor(function.imageDimension(), function.dimension(), degree);
-    function(CVector({0, 0, 0, 0}), taylor);
-    return taylor;
-}
-
 Polynomial<Complex> projP(const Polynomial<Complex> &poly, int upToDegree)
 {
     int maxDeg = upToDegree != -1 ? std::min((int)poly.degree(), upToDegree) : poly.degree();
@@ -71,49 +64,6 @@ CVector gamma(int p, int q, Complex lambda1, Complex lambda2)
         Complex(p, 0)*lambda1 + Complex(q-1, 0)*lambda2,
         Complex(p, 0)*lambda1 + Complex(q+1, 0)*lambda2
     });
-}
-
-bool isNonzero(CColumnVector columnVector)
-{
-    for(Complex x : columnVector)
-    {
-        if(x.real() != 0 || x.imag() != 0) 
-            return true;
-    }
-    return false;
-}
-
-PairMap<Polynomial<Complex>> pqCoefficients(const Polynomial<Complex> & poly, int upToDegree)
-{
-    PairMap<Polynomial<Complex>> coefficients;
-
-    for(int deg = 0; deg <= upToDegree; ++deg)
-    {
-        Multiindex index({deg, 0, 0, 0});
-        do
-        {
-            auto coeffVector = poly(index);
-
-            if(isNonzero(coeffVector))
-            {
-                int p = index[0] - index[1]; // j - k
-                int q = index[2] - index[3]; // l - m
-                auto pair_pq = make_pair(p, q);
-
-                if (!coefficients.contains(pair_pq))
-                {
-                    Polynomial<Complex> newElem(4, 2, upToDegree);
-                    coefficients.insert(make_pair(pair_pq, newElem));
-                }
-
-                Multiindex coefficientIndex({index[1], index[3]}); // (k, m)
-                coefficients[pair_pq](coefficientIndex) += coeffVector;
-            }
-        }
-        while(index.hasNext());
-    }
-
-    return coefficients;
 }
 
 Polynomial<Complex> operatorL(const Polynomial<Complex> Psi, const Polynomial<Complex> &N, const CMatrix &lambda)

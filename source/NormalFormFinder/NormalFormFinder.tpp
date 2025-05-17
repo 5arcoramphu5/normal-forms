@@ -13,44 +13,40 @@
 #include <vector>
 
 template<LoggerType Logger>
-NormalFormFinder<Logger>::NormalFormFinder(int _degree, const Diagonalization<capd::Complex> &diagonalization)
-    : degree(_degree), diagonalization(diagonalization), iterations(0)
+NormalFormFinder<Logger>::NormalFormFinder(int _degree)
+    : degree(_degree), iterations(0)
     {}
 
 template<LoggerType Logger>
-PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm()
+PseudoNormalForm NormalFormFinder<Logger>::calculatePseudoNormalForm(const Diagonalization<capd::Complex> &diagonalization)
 {
-    PointType pointType = getPointType(diagonalization.getLambda(), lambda1, lambda2);
+    setPointTypeAndLambdas(diagonalization.getLambda());
+
     if(pointType == PointType::Unsupported)
         throw std::runtime_error("Type of equilibrium point not supported.");
         
-    if(pointType == PointType::SaddleCenter) // TODO: to be deleted
+    if(pointType == PointType::SaddleCenter)
         throw std::runtime_error("Case not implemented yet.");
 
-    log<Debug>("lambda:\n", diagonalization.getLambda());
-    log<Debug>("Point type: ", pointType, "\n");
-
-    PseudoNormalForm normalForm = getInitialNormalFormValues();
+    PseudoNormalForm normalForm = getInitialNormalFormValues(diagonalization);
 
     for(iterations = 1; iterations <= degree; ++iterations)
     {
         log<ProgressIndication>("--------- iteration:", iterations, "/", degree, "---------");
 
-        nextIteration(normalForm);
+        nextIteration(normalForm, diagonalization);
         
         log<Diagnostic>("--------------------------------");
         log<Minimal>("Phi:\n", normalForm.getPhi());
         log<Minimal>("N:\n", normalForm.getN());
         log<Minimal>("B:\n", normalForm.getB());
-        log<Debug>("a1:\n", normalForm.a1);
-        log<Debug>("a2:\n", normalForm.a2);
     }
 
     return normalForm;
 }
 
 template<LoggerType Logger>
-PseudoNormalForm NormalFormFinder<Logger>::getInitialNormalFormValues()
+PseudoNormalForm NormalFormFinder<Logger>::getInitialNormalFormValues(const Diagonalization<capd::Complex> &diagonalization)
 {
     PseudoNormalForm normalForm(degree+1);
 
@@ -70,14 +66,14 @@ PseudoNormalForm NormalFormFinder<Logger>::getInitialNormalFormValues()
 }
 
 template<LoggerType Logger>
-void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm)
+void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm, const Diagonalization<capd::Complex> &diagonalization)
 {
     auto FremPhi = diagonalization.polynomialCompositionWithReminder(normalForm.phi);
     
     solveFirstEquation(normalForm.phi, normalForm.a1, normalForm.a2, FremPhi);
-    Logger::template enableIf<Diagnostic>( [normalForm, FremPhi, this] () 
+    Logger::template enableIf<Diagnostic>( [normalForm, FremPhi, diagonalization, this] () 
     { 
-        this->checkFirstEquation(normalForm.phi, FremPhi, normalForm.n); 
+        this->checkFirstEquation(normalForm.phi, FremPhi, normalForm.n, diagonalization); 
     } );
     
     solveSecondEquation(normalForm.n, normalForm.b, normalForm.a1, normalForm.a2, FremPhi);
@@ -86,46 +82,37 @@ void NormalFormFinder<Logger>::nextIteration(PseudoNormalForm &normalForm)
         this->checkSecondEquation(normalForm.n, normalForm.b, FremPhi); 
     } );
 
-    Logger::template enableIf<Diagnostic>( [normalForm, this] () 
+    Logger::template enableIf<Diagnostic>( [normalForm, diagonalization, this] () 
     { 
-        this->checkNormalFormEquality(normalForm); 
+        this->checkNormalFormEquality(normalForm, diagonalization); 
     } );
 }
 
 template<LoggerType Logger>
-typename NormalFormFinder<Logger>::PointType NormalFormFinder<Logger>::getPointType(const CMatrix &diagonalMatrix, capd::Complex &lambda1, capd::Complex &lambda2)
+void NormalFormFinder<Logger>::setPointTypeAndLambdas(const CMatrix &lambda)
 {
-    // find pairs lambda, -lambda on the diagonal
-    int pairWithFirst = -1;
-    for(int i = 1; i < 4; ++i)
-        if(diagonalMatrix[0][0] == -diagonalMatrix[i][i])
-        {
-            pairWithFirst = i;
-            break;
-        }
-
-    if(pairWithFirst == -1)
-        return PointType::Unsupported;
-
-    std::vector<int> secondPair;
-    for(int i = 1; i < 4; ++i)
-        if(i != pairWithFirst)
-            secondPair.push_back(i);
-
-    if(diagonalMatrix[secondPair[0]][secondPair[0]] != -diagonalMatrix[secondPair[1]][secondPair[1]])
-        return PointType::Unsupported;
+    if(lambda[0][0] != -lambda[1][1] || lambda[2][2] != -lambda[3][3])
+    {
+        pointType = PointType::Unsupported;
+        return;
+    }
     
-    lambda1 = diagonalMatrix[0][0];
-    lambda2 = diagonalMatrix[secondPair[0]][secondPair[0]];
+    lambda1 = lambda[0][0];
+    lambda2 = lambda[2][2];
     
     if( (lambda1.real() == 0 && lambda1.imag() != 0 && lambda2.imag() == 0 && lambda2.real() != 0) || 
         (lambda1.imag() == 0 && lambda1.real() != 0 && lambda2.real() == 0 && lambda2.imag() != 0) )
-        return PointType::SaddleCenter;
-
-    if( (conj(lambda1) == lambda2 || conj(lambda1) == -lambda2) && lambda1.real() != 0 && lambda1.imag() != 0)
-        return PointType::SaddleFocus;
-
-    return PointType::Unsupported;
+    {
+        pointType = PointType::SaddleCenter;
+    }
+    else if( (conj(lambda1) == lambda2 || conj(lambda1) == -lambda2) && lambda1.real() != 0 && lambda1.imag() != 0)
+    {
+        pointType = PointType::SaddleFocus;
+    }
+    else
+    {
+        pointType = PointType::Unsupported;
+    }
 }
 
 template<LoggerType Logger>
@@ -133,57 +120,72 @@ void NormalFormFinder<Logger>::solveFirstEquation(Polynomial<capd::Complex> &Psi
 {
     Polynomial<capd::Complex> RH = projR(H, iterations+1);
 
-    auto pq_coeffs = pqCoefficients(RH, iterations+1);
-
-    for(auto& [pq, h_pq] : pq_coeffs)
+    for(int deg1 = 0; deg1 <= iterations+1; ++deg1)
     {
-        auto& [p, q] = pq; 
-
-        // calculate only iterations+1 degree
-        // 2*deg + p + q == iterations+1
-        if( (iterations+1 - p - q) % 2 == 1 ) continue;
-
-        auto _gamma = gamma(p, q, lambda1, lambda2);
-        Polynomial<capd::Complex> denominator(4, 2, iterations+1); // gamma + pa_1 + qa_2
-
-        capd::Multiindex zero({0, 0});
-        for(int i = 0; i < 4; ++i)
+        capd::Multiindex index({deg1, 0, 0, 0});
+        do
         {
-            for(int deg = 1; deg <= denominator.degree(); ++deg)
-            {
-                capd::Multiindex ind({deg, 0});
-                do 
-                {
-                    denominator(i, ind) = capd::Complex(p, 0) * a1(0, ind) + capd::Complex(q, 0) * a2(0, ind);
-                }while(ind.hasNext());
-            }
+            auto coeffVector = RH(index);
 
-            denominator(i, zero) += _gamma[i];
-        }
-
-        int deg = (iterations+1 - p - q) / 2;
-
-        Polynomial<capd::Complex> psi_pq = polynomialDivision(h_pq, denominator, deg);
-
-        capd::Multiindex ind({deg, 0});
-        do 
-        {
-            if(ind[0] + p < 0 || ind[1] + q < 0)
-                continue;
-                
-            capd::Multiindex psiIndex({ind[0] + p, ind[0], ind[1] + q, ind[1]});
+            int p = index[0] - index[1]; // j - k
+            int q = index[2] - index[3]; // l - m
             
+            // calculate only iterations+1 degree
+            // 2*deg + p + q == iterations+1
+            if( (iterations+1 - p - q) % 2 == 1 ) continue;
+
+            // prepare p, q monomial
+            capd::Multiindex coefficientIndex({index[1], index[3]}); // (k, m)
+            int polyDeg = index[1] + index[3];
+            Polynomial<capd::Complex> pqMono(4, 2, polyDeg);
+            pqMono(coefficientIndex) = coeffVector;
+            
+            // prepare the denominator
+            auto _gamma = gamma(p, q, lambda1, lambda2);
+            Polynomial<capd::Complex> denominator(4, 2, iterations+1); // gamma + pa_1 + qa_2
+
+            capd::Multiindex zero({0, 0});
             for(int i = 0; i < 4; ++i)
             {
-                if(denominator(i ,zero) != capd::Complex(0, 0))
-                    Psi(i, psiIndex) += psi_pq(i, ind);
+                for(int deg2 = 1; deg2 <= denominator.degree(); ++deg2)
+                {
+                    capd::Multiindex ind({deg2, 0});
+                    do 
+                    {
+                        denominator(i, ind) = capd::Complex(p, 0) * a1(0, ind) + capd::Complex(q, 0) * a2(0, ind);
+                    }while(ind.hasNext());
+                }
+
+                denominator(i, zero) += _gamma[i];
             }
-        }while(ind.hasNext());
+
+            // calculate psi_pq
+            int currentDegree = (iterations+1 - p - q) / 2;
+            Polynomial<capd::Complex> psi_pq = polynomialDivision(pqMono, denominator, currentDegree);
+
+            // get result from p, q form
+            capd::Multiindex ind({currentDegree, 0});
+            do 
+            {
+                if(ind[0] + p < 0 || ind[1] + q < 0)
+                    continue;
+                    
+                capd::Multiindex psiIndex({ind[0] + p, ind[0], ind[1] + q, ind[1]});
+                
+                for(int i = 0; i < 4; ++i)
+                {
+                    if(denominator(i ,zero) != capd::Complex(0, 0))
+                        Psi(i, psiIndex) += psi_pq(i, ind);
+                }
+            }
+            while(ind.hasNext());
+        }
+        while(index.hasNext());
     }
 }
 
 template <LoggerType Logger>
-void NormalFormFinder<Logger>::checkFirstEquation(const Polynomial<capd::Complex> &Psi, const Polynomial<capd::Complex> &H, const Polynomial<capd::Complex> &N)
+void NormalFormFinder<Logger>::checkFirstEquation(const Polynomial<capd::Complex> &Psi, const Polynomial<capd::Complex> &H, const Polynomial<capd::Complex> &N, const Diagonalization<capd::Complex> &diagonalization)
 {
     auto LHS = operatorL(projR(Psi.reminderPart()), N, diagonalization.getLambda()).fromToDegree(0, iterations+1);
     auto RHS = projR(H).fromToDegree(0, iterations+1);
@@ -245,7 +247,7 @@ void NormalFormFinder<Logger>::checkSecondEquation(const Polynomial<capd::Comple
 }
 
 template <LoggerType Logger>
-void NormalFormFinder<Logger>::checkNormalFormEquality(const PseudoNormalForm &normalForm)
+void NormalFormFinder<Logger>::checkNormalFormEquality(const PseudoNormalForm &normalForm, const Diagonalization<capd::Complex> &diagonalization)
 {
     auto LHS = D(normalForm.phi) * normalForm.n + normalForm.b;
     auto RHS = diagonalization.polynomialComposition(normalForm.phi);

@@ -14,7 +14,7 @@ class NormalFormFinder
 
         const int degree; // number of iterations
 
-        // system: X' = F(X) 
+        // input system: X' = F(X) 
         // F(X) = J f(p + J^-1 X)
         // DF = lambda = J Df J^-1
         // where:
@@ -23,27 +23,27 @@ class NormalFormFinder
         //                                          0           -lambda1    0           0
         //                                          0           0           lambda2     0
         //                                          0           0           0           -lambda2
-        const Diagonalization<capd::Complex> diagonalization;
 
         // variables used in computations:
+        PointType pointType;
         capd::Complex lambda1, lambda2;
         int iterations;
 
-        PseudoNormalForm getInitialNormalFormValues();
-        void nextIteration(PseudoNormalForm &normalForm);
+        void setPointTypeAndLambdas(const CMatrix &lambda);
+        PseudoNormalForm getInitialNormalFormValues(const Diagonalization<capd::Complex> &diagonalization);
+        void nextIteration(PseudoNormalForm &normalForm, const Diagonalization<capd::Complex> &diagonalization);
 
-        PointType getPointType(const CMatrix &diagonalMatrix, capd::Complex &lambda1, capd::Complex &lambda2);
 
         // solves equation of type: L(R(Psi)) = R(H)
         void solveFirstEquation(Polynomial<capd::Complex> &Psi, const Polynomial<capd::Complex> &a1, const Polynomial<capd::Complex> &a2, const Polynomial<capd::Complex> &H);
         // solves equation of type: N + B = P(H)
         void solveSecondEquation(Polynomial<capd::Complex> &N, Polynomial<capd::Complex> &B, Polynomial<capd::Complex> &a1, Polynomial<capd::Complex> &a2, const Polynomial<capd::Complex> &H);
 
-        void checkFirstEquation(const Polynomial<capd::Complex> &Psi, const Polynomial<capd::Complex> &H, const Polynomial<capd::Complex> &N);
+        void checkFirstEquation(const Polynomial<capd::Complex> &Psi, const Polynomial<capd::Complex> &H, const Polynomial<capd::Complex> &N, const Diagonalization<capd::Complex> &diagonalization);
 
         void checkSecondEquation(const Polynomial<capd::Complex> &N, const Polynomial<capd::Complex> &B, const Polynomial<capd::Complex> &H);
 
-        void checkNormalFormEquality(const PseudoNormalForm &normalForm);
+        void checkNormalFormEquality(const PseudoNormalForm &normalForm, const Diagonalization<capd::Complex> &diagonalization);
 
         template<VerbosityLevel MessageVerbosity, Streamable... MessageTypes>
         static inline void log(MessageTypes... message)
@@ -52,9 +52,9 @@ class NormalFormFinder
         }
 
     public:
-        NormalFormFinder(int _degree, const Diagonalization<capd::Complex> &diagonalization);
+        NormalFormFinder(int _degree);
 
-        PseudoNormalForm calculatePseudoNormalForm();
+        PseudoNormalForm calculatePseudoNormalForm(const Diagonalization<capd::Complex> &diagonalization);
 };
 
 #include "NormalFormFinder.tpp"

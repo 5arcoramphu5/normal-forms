@@ -37,7 +37,4 @@ Polynomial<Coeff> operator-(const Polynomial<Coeff> &p1, const Polynomial<Coeff>
 template<ArithmeticType Coeff>
 Polynomial<Coeff> polynomialDivision(const Polynomial<Coeff> &numerator, const Polynomial<Coeff> &denominator, int degree);
 
-template<ArithmeticType Coeff>
-Polynomial<Coeff> toPolynomial(const capd::vectalg::Matrix<Coeff, 0, 0> &linearPart, const capd::vectalg::Vector<Coeff, 0> &constant, int degree);
-
 #include "Polynomial.tpp"

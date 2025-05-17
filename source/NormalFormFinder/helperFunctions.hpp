@@ -5,15 +5,11 @@
 #include "../containers/PolynomialMatrix.hpp"
 #include "../containers/PairMap.hpp"
 
-Polynomial<capd::Complex> getTaylorSeries(const CMap &function, int degree);
-
 Polynomial<capd::Complex> projP(const Polynomial<capd::Complex> &poly, int upToDegree = -1);
 
 Polynomial<capd::Complex> projR(const Polynomial<capd::Complex> &poly, int upToDegree = -1);
 
 CVector gamma(int p, int q, capd::Complex lambda1, capd::Complex lambda2);
-
-PairMap<Polynomial<capd::Complex>> pqCoefficients(const Polynomial<capd::Complex> &poly, int upToDegree);
 
 Polynomial<capd::Complex> operatorL(const Polynomial<capd::Complex> Psi, const Polynomial<capd::Complex> &N, const CMatrix &lambda);
 

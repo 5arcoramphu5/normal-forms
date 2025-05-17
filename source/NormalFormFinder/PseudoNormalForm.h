@@ -31,6 +31,8 @@ class PseudoNormalForm
         const Polynomial<capd::Complex>& getB() const
         { return b; }
 
+
+        // solution of the system (only for B=0)
         CVector solution(double t, CVector initialPoint) const
         {
             CVector constPart({initialPoint[0]*initialPoint[1], initialPoint[2]*initialPoint[3]}); // value of xi*eta, mu*nu - constant with respect to t

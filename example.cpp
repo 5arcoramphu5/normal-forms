@@ -6,7 +6,6 @@ using namespace std;
 using namespace capd;
 using capd::autodiff::Node;
 
-#define MAX_DERIVATIVE 10
 #define METHOD_DEGREE 5
 
 #define LOGGER Logger<Diagnostic, SymbolicPolynomialPrinting, 5>
@@ -26,15 +25,15 @@ PseudoNormalForm diagonal_matrix_test()
     CMatrix J = CMatrix::Identity(4);
     CMatrix invJ = CMatrix::Identity(4);
 
-    Diagonalization<Complex> diagonalization(diagonalVectorField, 5, p, J, invJ, lambda, MAX_DERIVATIVE);
+    Diagonalization<Complex> diagonalization(diagonalVectorField, 5, p, J, invJ, lambda, METHOD_DEGREE+1);
     diagonalization.setParameter(0, Complex(1, 1));
     diagonalization.setParameter(1, Complex(-1, -1));
     diagonalization.setParameter(2, Complex(1, -1));
     diagonalization.setParameter(3, Complex(-1, 1));
     diagonalization.setParameter(4, 1i);
 
-    NormalFormFinder<LOGGER> finder(METHOD_DEGREE, diagonalization);
-    return finder.calculatePseudoNormalForm();
+    NormalFormFinder<LOGGER> finder(METHOD_DEGREE);
+    return finder.calculatePseudoNormalForm(diagonalization);
 }
 
 void pcr3bpVectorField(Node /*t*/, Node in[], int /*dimIn*/, Node out[], int /*dimOut*/, Node params[], int /*noParams*/)
@@ -81,11 +80,11 @@ PseudoNormalForm PCR3BP_test()
         {Complex(-0.0799453, -0.44769), Complex(0.0799453, 0.44769), Complex(-0.0799453, 0.44769), Complex(0.0799453, -0.44769)}
     });
 
-    Diagonalization<Complex> diagonalization(pcr3bpVectorField, 1, p, J, invJ, lambda, MAX_DERIVATIVE);
+    Diagonalization<Complex> diagonalization(pcr3bpVectorField, 1, p, J, invJ, lambda, METHOD_DEGREE+1);
     diagonalization.setParameter(0, 0.5); // mu parameter
 
-    NormalFormFinder<LOGGER> finder(METHOD_DEGREE, diagonalization);
-    return finder.calculatePseudoNormalForm();
+    NormalFormFinder<LOGGER> finder(METHOD_DEGREE);
+    return finder.calculatePseudoNormalForm(diagonalization);
 }
 
 int main()
