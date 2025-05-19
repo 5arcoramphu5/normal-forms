@@ -1,10 +1,7 @@
 #pragma once
 
 #include "NormalFormFinder.hpp"
-#include "PseudoNormalForm.h"
 #include "helperFunctions.hpp"
-#include "../logging/logging.hpp"
-#include "../containers/Polynomial.hpp"
 #include "../containers/PolynomialMatrix.hpp"
 
 #include "capd/capdlib.h"

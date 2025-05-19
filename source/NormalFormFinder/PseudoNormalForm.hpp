@@ -10,7 +10,8 @@ class PseudoNormalForm
 {
     private:
         PseudoNormalForm(int degree) : phi(4, 4, degree), n(4, 4, degree), b(4, 4, degree), a1(1, 2, degree), a2(1, 2, degree) {}
-
+        PseudoNormalForm(const Polynomial<capd::Complex> &phi, const Polynomial<capd::Complex> &n, const Polynomial<capd::Complex> &b, const Polynomial<capd::Complex> &a1, const Polynomial<capd::Complex> &a2) : phi(phi), n(n), b(b), a1(a1), a2(a2) {}
+        
         Polynomial<capd::Complex> phi;   
         Polynomial<capd::Complex> n;
         Polynomial<capd::Complex> b; 
@@ -31,23 +32,14 @@ class PseudoNormalForm
         const Polynomial<capd::Complex>& getB() const
         { return b; }
 
-
         // solution of the system (only for B=0)
-        CVector solution(double t, CVector initialPoint) const
-        {
-            CVector constPart({initialPoint[0]*initialPoint[1], initialPoint[2]*initialPoint[3]}); // value of xi*eta, mu*nu - constant with respect to t
-            auto a1_const = a1(constPart)[0];
-            auto a2_const = a2(constPart)[0];
-            return CVector(
-                {
-                    exp(a1_const*t) * initialPoint[0],
-                    exp(-a1_const*t) * initialPoint[1],
-                    exp(a2_const*t) * initialPoint[2],
-                    exp(-a2_const*t) * initialPoint[3]
-                }
-            );
-        }
+        CVector solution(double t, CVector initialPoint) const;
+
+        void serialize(std::ostream &stream) const;
+        static PseudoNormalForm deserialize(std::istream &stream);
 
     template<LoggerType Logger>
     friend class NormalFormFinder;
 };
+
+#include "PseudoNormalForm.tpp"

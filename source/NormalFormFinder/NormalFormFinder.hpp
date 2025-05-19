@@ -4,7 +4,7 @@
 #include "../logging/logging.hpp"
 #include "../containers/Polynomial.hpp"
 #include "../Diagonalization/Diagonalization.hpp"
-#include "PseudoNormalForm.h"
+#include "PseudoNormalForm.hpp"
 
 template<LoggerType Logger = Logger<VerbosityLevel::None>>
 class NormalFormFinder
