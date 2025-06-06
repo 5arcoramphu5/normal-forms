@@ -22,8 +22,8 @@ class Diagonalization
 
         Polynomial<Coeff> getDiagonalizedTaylorSeries(int degree) const;
 
-        Vector<Coeff> toDiag(const Vector<Coeff> &vector);
-        Vector<Coeff> toOriginal(const Vector<Coeff> &vector);
+        Vector<Coeff> toDiag(const Vector<Coeff> &vector) const;
+        Vector<Coeff> toOriginal(const Vector<Coeff> &vector) const;
 
         void setParameter(int index, Coeff value);
 

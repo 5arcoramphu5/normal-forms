@@ -92,13 +92,13 @@ void Diagonalization<Coeff>::functionWithSubstitution(MapFunction f, int noParam
 }
 
 template <ArithmeticType Coeff>
-Vector<Coeff> Diagonalization<Coeff>::toDiag(const Vector<Coeff> &vector)
+Vector<Coeff> Diagonalization<Coeff>::toDiag(const Vector<Coeff> &vector) const
 {
     return J * (vector - p);
 }
 
 template <ArithmeticType Coeff>
-Vector<Coeff> Diagonalization<Coeff>::toOriginal(const Vector<Coeff> &vector)
+Vector<Coeff> Diagonalization<Coeff>::toOriginal(const Vector<Coeff> &vector) const
 {
     return p + invJ * vector;
 }

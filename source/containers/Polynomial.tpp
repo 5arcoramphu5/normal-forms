@@ -1,6 +1,7 @@
 #pragma once 
 
 #include "Polynomial.hpp"
+#include <iomanip>
 
 template<ArithmeticType Coeff>
 Polynomial<Coeff> Polynomial<Coeff>::fromToDegree(int degreeFrom, int degreeTo) const
@@ -30,6 +31,9 @@ Polynomial<Coeff> Polynomial<Coeff>::fromToDegree(int degreeFrom, int degreeTo) 
 template <ArithmeticType Coeff>
 void Polynomial<Coeff>::serialize(std::ostream &stream) const
 {
+    int previousPrecision = stream.precision();
+    stream << std::setprecision(19); 
+
     stream << this->degree() << " " << this->dimension() << " " << this->imageDimension() << "\n";
     for(int i = 0; i < this->imageDimension(); ++i)
     {
@@ -44,6 +48,8 @@ void Polynomial<Coeff>::serialize(std::ostream &stream) const
             stream << "\n";
         }
     }
+
+    stream << std::setprecision(previousPrecision);
 }
 
 template <ArithmeticType Coeff>
